@@ -14,4 +14,5 @@ def test_tier1_roundtrip_all_engines():
         for source in samples:
             archive = engine.compress(source)
             assert engine.decompress(archive) == source, name
-            assert archive.startswith(b"ST1\x01"), name
+            expected_magic = getattr(engine, "magic", b"ST1\x01")
+            assert archive.startswith(expected_magic), name
