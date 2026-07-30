@@ -34,6 +34,7 @@ jobs:
             compression_lab/gabriel_horn_engine.py \
             compression_lab/shtenco_tier1_engines.py \
             compression_lab/shtenco_tier1_v2.py \
+            compression_lab/shtenco_tier1_v21.py \
             compression_lab/frozen_tier1_summary.py \
             compression_lab/historical_tier1_corpus.py \
             compression_lab/benchmark_unified_tier1.py
@@ -92,6 +93,7 @@ jobs:
           mkdir -p dist/SHTENCO_UNIFIED_TIER1_V2
           cp compression_lab/shtenco_tier1_engines.py dist/SHTENCO_UNIFIED_TIER1_V2/
           cp compression_lab/shtenco_tier1_v2.py dist/SHTENCO_UNIFIED_TIER1_V2/
+          cp compression_lab/shtenco_tier1_v21.py dist/SHTENCO_UNIFIED_TIER1_V2/
           cp compression_lab/gabriel_horn_engine.py dist/SHTENCO_UNIFIED_TIER1_V2/
           cp compression_lab/frozen_tier1_summary.py dist/SHTENCO_UNIFIED_TIER1_V2/
           cp compression_lab/historical_tier1_corpus.py dist/SHTENCO_UNIFIED_TIER1_V2/
