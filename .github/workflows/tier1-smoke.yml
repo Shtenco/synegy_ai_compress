@@ -21,4 +21,14 @@ jobs:
           cache: pip
           cache-dependency-path: compression_lab/requirements_v4.txt
       - run: python -m pip install -r compression_lab/requirements_v4.txt
-      - run: python -m pytest -q compression_lab/test_tier1_engines.py
+      - name: Compile active compression engines
+        run: |
+          python -m py_compile \
+            compression_lab/gabriel_horn_engine.py \
+            compression_lab/shtenco_tier1_engines.py \
+            compression_lab/umd_selector.py
+      - name: Exact round-trip, random-access and corruption tests
+        run: |
+          python -m pytest -q \
+            compression_lab/test_tier1_engines.py \
+            compression_lab/test_gabriel_horn_engine.py
