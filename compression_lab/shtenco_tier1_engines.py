@@ -19,6 +19,11 @@ from typing import Iterable
 import zstandard as zstd
 
 try:
+    from .gabriel_horn_engine import GabrielHornEngine
+except ImportError:  # Direct execution from compression_lab/.
+    from gabriel_horn_engine import GabrielHornEngine
+
+try:
     from mnemonic import Mnemonic
 except Exception:
     Mnemonic = None
@@ -265,4 +270,7 @@ class NexusUMCTier1(_BaseTier1):
 def tier1_engine_suite() -> list[tuple[str, str, object]]:
     engines = [SABFXTier1Speed(), SABFXTier1Balanced(), GRAALAISTier1(),
                TSCTier1Spatial(), PBM39Tier1(), NexusUMCTier1(), GRAALIGCTier1Max()]
-    return [(engine.name, "SHTENCO-TIER1", engine) for engine in engines]
+    suite = [(engine.name, "SHTENCO-TIER1", engine) for engine in engines]
+    gabriel = GabrielHornEngine(profile="max")
+    suite.append((gabriel.name, gabriel.family, gabriel))
+    return suite
