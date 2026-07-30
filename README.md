@@ -7,11 +7,25 @@
 - EGD-256, SABF-X, HACE-X, TSC-X, AMCE-100X;
 - UMC-256 и MDL-маршрутизация;
 - Graph-AI Compression V5.2 и GRAAL-IGC;
+- **Gabriel Horn Codec (`SGH1`)**: многомасштабный lifting, significance-shells, дедупликация, random access и surface-aware MDL;
 - BIP39, Arithmetic, rANS, Huffman, Graph Delta;
 - Tier-1 движки и Matrix web-приложение;
 - воспроизводимые benchmark, round-trip и SHA-256 тесты.
 
 Активные файлы хранятся в `compression_lab/`, CI — в `.github/workflows/`.
+
+## Gabriel Horn
+
+```python
+from compression_lab.gabriel_horn_engine import GabrielHornEngine
+
+engine = GabrielHornEngine(profile="max")
+archive = engine.compress(source)
+assert engine.decompress(archive) == source
+fragment = engine.decompress_range(archive, 1000, 5000)
+```
+
+Математика, формат контейнера и ограничения описаны в `compression_lab/README_GABRIEL_HORN.md`.
 
 `source_snapshot` — неизменяемый Git-snapshot commit `c681ec94fe5194156b71fc304035f7aaff4d2327` из прежнего репозитория. В нём сохранены все исторические compression-файлы, тесты и поколения V3/V4/V5.2/Tier-1. После клонирования с доступом к приватному `Shtenco/agi_olga` выполните:
 
