@@ -1,0 +1,90 @@
+name: SHTENCO Graph-AI V5.2
+
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  graph-ai-test:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+          cache-dependency-path: compression_lab/requirements_v4.txt
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r compression_lab/requirements_v4.txt
+
+      - name: Compile graph source
+        run: |
+          python -m py_compile \
+            compression_lab/shtenco_graph_ai_core.py \
+            compression_lab/shtenco_graph_ai_v51.py \
+            compression_lab/shtenco_graph_ai_v52.py \
+            compression_lab/graph_ai_v2_integration.py \
+            compression_lab/build_exact_v2_graph_ai.py \
+            compression_lab/egd256_web_app_v5_graph_ai.py \
+            compression_lab/benchmark_graph_ai_v5.py \
+            compression_lab/benchmark_graph_ai_v51.py \
+            compression_lab/test_graph_ai_v5.py
+
+      - name: Unit and canonical 42-row tests
+        run: python -m pytest -q compression_lab/test_graph_ai_v5.py
+
+      - name: Verify existing 35-engine base
+        run: python compression_lab/egd256_web_app_v3.py --self-test
+
+      - name: Proprietary base versus Graph-AI V5.2 benchmark
+        run: |
+          set -o pipefail
+          mkdir -p compression_lab/output_graph_v52
+          python compression_lab/benchmark_graph_ai_v51.py \
+            --size 4096 \
+            --output compression_lab/output_graph_v52 \
+            | tee compression_lab/output_graph_v52/benchmark_console.log
+
+      - name: Build complete package
+        run: |
+          mkdir -p dist/SHTENCO_GRAPH_AI_ARCHIVER_V52
+          cp compression_lab/shtenco_graph_ai_core.py dist/SHTENCO_GRAPH_AI_ARCHIVER_V52/
+          cp compression_lab/shtenco_graph_ai_v51.py dist/SHTENCO_GRAPH_AI_ARCHIVER_V52/
+          cp compression_lab/shtenco_graph_ai_v52.py dist/SHTENCO_GRAPH_AI_ARCHIVER_V52/
+          cp compression_lab/graph_ai_v2_integration.py dist/SHTENCO_GRAPH_AI_ARCHIVER_V52/
+          cp compression_lab/build_exact_v2_graph_ai.py dist/SHTENCO_GRAPH_AI_ARCHIVER_V52/
+          cp compression_lab/egd256_web_app_v5_graph_ai.py dist/SHTENCO_GRAPH_AI_ARCHIVER_V52/
+          cp compression_lab/BUILD_GRAPH_AI_V5.bat dist/SHTENCO_GRAPH_AI_ARCHIVER_V52/
+          cp compression_lab/README_GRAPH_AI_V5.md dist/SHTENCO_GRAPH_AI_ARCHIVER_V52/README.md
+          cp compression_lab/requirements_v4.txt dist/SHTENCO_GRAPH_AI_ARCHIVER_V52/requirements.txt
+          cp compression_lab/benchmark_graph_ai_v5.py dist/SHTENCO_GRAPH_AI_ARCHIVER_V52/
+          cp compression_lab/benchmark_graph_ai_v51.py dist/SHTENCO_GRAPH_AI_ARCHIVER_V52/benchmark_graph_ai_v52.py
+          cp compression_lab/test_graph_ai_v5.py dist/SHTENCO_GRAPH_AI_ARCHIVER_V52/
+          cp -r compression_lab/output_graph_v52 dist/SHTENCO_GRAPH_AI_ARCHIVER_V52/results
+          cat > dist/SHTENCO_GRAPH_AI_ARCHIVER_V52/PUT_EXACT_V2_HERE.txt <<'EOF'
+          Put the exact uploaded egd256_web_app_v2.py and its original dependency modules in this directory.
+          Then run BUILD_GRAPH_AI_V5.bat or:
+          python egd256_web_app_v5_graph_ai.py
+          EOF
+          cd dist
+          zip -r -9 SHTENCO_GRAPH_AI_ARCHIVER_V52_FULL.zip SHTENCO_GRAPH_AI_ARCHIVER_V52
+          sha256sum SHTENCO_GRAPH_AI_ARCHIVER_V52_FULL.zip > SHA256SUMS_GRAPH_AI_V52.txt
+
+      - name: Upload Graph-AI package and reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: SHTENCO_GRAPH_AI_ARCHIVER_V52_FULL
+          path: |
+            dist/SHTENCO_GRAPH_AI_ARCHIVER_V52_FULL.zip
+            dist/SHA256SUMS_GRAPH_AI_V52.txt
+            compression_lab/output_graph_v52/
+          if-no-files-found: error
+          retention-days: 30
