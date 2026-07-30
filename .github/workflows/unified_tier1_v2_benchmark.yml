@@ -1,0 +1,128 @@
+name: Unified SHTENCO Tier-1 v2 benchmark
+
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  unified-tier1:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 240
+    env:
+      PYTHONHASHSEED: '0'
+      PYTHONUNBUFFERED: '1'
+      SHTENCO_LEGACY_COMPRESSION_DIR: ${{ github.workspace }}/legacy/compression_lab
+    steps:
+      - name: Checkout current AI Compress
+        uses: actions/checkout@v4
+        with:
+          path: ai_compress
+      - name: Checkout immutable historical compression snapshot
+        uses: actions/checkout@v4
+        with:
+          repository: Shtenco/agi_olga
+          ref: c681ec94fe5194156b71fc304035f7aaff4d2327
+          path: legacy
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+          cache-dependency-path: ai_compress/compression_lab/requirements_v4.txt
+      - name: Install pinned dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r ai_compress/compression_lab/requirements_v4.txt
+      - name: Compile current and historical engines
+        run: |
+          python -m py_compile \
+            ai_compress/compression_lab/gabriel_horn_engine.py \
+            ai_compress/compression_lab/shtenco_tier1_engines.py \
+            ai_compress/compression_lab/shtenco_tier1_v2.py \
+            ai_compress/compression_lab/benchmark_unified_tier1.py \
+            legacy/compression_lab/benchmark_all_systems_exact.py \
+            legacy/compression_lab/egd256_web_app_v3.py \
+            legacy/compression_lab/benchmark_graph_ai_v51.py \
+            legacy/compression_lab/umc256_engine.py
+      - name: Exact unit and corruption tests
+        env:
+          PYTHONPATH: ${{ github.workspace }}/ai_compress:${{ github.workspace }}/ai_compress/compression_lab:${{ github.workspace }}/legacy/compression_lab
+        run: |
+          python -m pytest -q \
+            ai_compress/compression_lab/test_gabriel_horn_engine.py \
+            ai_compress/compression_lab/test_tier1_engines.py \
+            ai_compress/compression_lab/test_tier1_v2.py \
+            ai_compress/compression_lab/test_tier1_engines.py \
+            legacy/compression_lab/test_graph_ai_v5.py
+          python legacy/compression_lab/egd256_web_app_v3.py --self-test
+      - name: Full exact benchmark of every legacy and current system
+        env:
+          PYTHONPATH: ${{ github.workspace }}/ai_compress/compression_lab:${{ github.workspace }}/legacy/compression_lab
+        run: |
+          set -o pipefail
+          rm -rf ai_compress/compression_lab/output_unified_tier1_v2
+          mkdir -p ai_compress/compression_lab/output_unified_tier1_v2
+          python ai_compress/compression_lab/benchmark_unified_tier1.py \
+            --size 32768 \
+            --repeats 3 \
+            --output ai_compress/compression_lab/output_unified_tier1_v2 \
+            2>&1 | tee ai_compress/compression_lab/output_unified_tier1_v2/benchmark_console.log
+      - name: Enforce correctness and Tier-1 target
+        if: always()
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          path = Path('ai_compress/compression_lab/output_unified_tier1_v2/UNIFIED_TIER1_POSITIONS.json')
+          if not path.exists():
+              raise SystemExit('unified positions report missing')
+          report = json.loads(path.read_text(encoding='utf-8'))
+          print('systems', report['system_count'], 'rows', report['row_count'], 'pass', report['pass_rows'])
+          if report['system_count'] < 76:
+              raise SystemExit('historical/current system inventory is incomplete')
+          if report['pass_rows'] != report['row_count']:
+              raise SystemExit('at least one exact benchmark row failed')
+          top_score = report['top_score'][:5]
+          top_ratio = report['top_ratio'][:5]
+          if not any(item['engine'].startswith('SHTENCO') for item in top_score):
+              raise SystemExit('no SHTENCO production engine in score TOP-5')
+          if not any(item['engine'].startswith('SHTENCO') for item in top_ratio):
+              raise SystemExit('no SHTENCO production engine in ratio TOP-5')
+          PY
+      - name: Record immutable source commits
+        if: always()
+        run: |
+          mkdir -p ai_compress/compression_lab/output_unified_tier1_v2
+          {
+            echo 'legacy_snapshot=c681ec94fe5194156b71fc304035f7aaff4d2327'
+            echo "ai_compress_commit=$(git -C ai_compress rev-parse HEAD)"
+            echo "workflow_commit=${GITHUB_SHA}"
+          } > ai_compress/compression_lab/output_unified_tier1_v2/SOURCE_COMMITS.txt
+      - name: Package full reproducibility artifact
+        if: always()
+        run: |
+          mkdir -p dist/SHTENCO_UNIFIED_TIER1_V2
+          cp ai_compress/compression_lab/shtenco_tier1_engines.py dist/SHTENCO_UNIFIED_TIER1_V2/
+          cp ai_compress/compression_lab/shtenco_tier1_v2.py dist/SHTENCO_UNIFIED_TIER1_V2/
+          cp ai_compress/compression_lab/gabriel_horn_engine.py dist/SHTENCO_UNIFIED_TIER1_V2/
+          cp ai_compress/compression_lab/benchmark_unified_tier1.py dist/SHTENCO_UNIFIED_TIER1_V2/
+          cp ai_compress/compression_lab/TIER1_V2_TECHNOLOGY_INVENTORY.md dist/SHTENCO_UNIFIED_TIER1_V2/
+          cp -r ai_compress/compression_lab/output_unified_tier1_v2 dist/SHTENCO_UNIFIED_TIER1_V2/results
+          cd dist
+          zip -r -9 SHTENCO_UNIFIED_TIER1_V2_FULL_ARTIFACT.zip SHTENCO_UNIFIED_TIER1_V2
+          sha256sum SHTENCO_UNIFIED_TIER1_V2_FULL_ARTIFACT.zip > SHA256SUMS_UNIFIED_TIER1_V2.txt
+      - name: Upload unified benchmark artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: SHTENCO_UNIFIED_TIER1_V2_FULL_ARTIFACT
+          path: |
+            dist/SHTENCO_UNIFIED_TIER1_V2_FULL_ARTIFACT.zip
+            dist/SHA256SUMS_UNIFIED_TIER1_V2.txt
+            ai_compress/compression_lab/output_unified_tier1_v2/
+          if-no-files-found: error
+          retention-days: 30
