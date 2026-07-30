@@ -27,6 +27,25 @@ fragment = engine.decompress_range(archive, 1000, 5000)
 
 Математика, формат контейнера и ограничения описаны в `compression_lab/README_GABRIEL_HORN.md`.
 
+## Точный корпусный benchmark
+
+```bash
+python compression_lab/benchmark_gabriel_corpus.py \
+  --size 16384 \
+  --repeats 3 \
+  --warmups 1 \
+  --engines raw,gabriel-max,zstd-19,brotli-11,graal-igc \
+  --output compression_lab/output_gabriel_corpus
+```
+
+Benchmark измеряет фактический размер архива, encode/decode throughput, peak RSS,
+стоимость случайного доступа и access amplification. Каждое измерение выполняется
+в новом процессе и принимается только после byte equality и SHA-256.
+
+Исторический `UMC-256` добавляется только при наличии его точного snapshot-модуля;
+другие UMC-движки не подставляются под это имя. Полная методология описана в
+`compression_lab/GABRIEL_CORPUS_METHODOLOGY.md`.
+
 `source_snapshot` — неизменяемый Git-snapshot commit `c681ec94fe5194156b71fc304035f7aaff4d2327` из прежнего репозитория. В нём сохранены все исторические compression-файлы, тесты и поколения V3/V4/V5.2/Tier-1. После клонирования с доступом к приватному `Shtenco/agi_olga` выполните:
 
 ```bash
