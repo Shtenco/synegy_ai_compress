@@ -1,210 +1,146 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""Unified exact benchmark: every historical system plus current Tier-1 v1/v2.
+"""Federated exact benchmark: frozen 69-system result + current Tier-1 rerun.
 
-The historical benchmark implementation is loaded from the immutable compression
-snapshot specified by ``SHTENCO_LEGACY_COMPRESSION_DIR``. Current engines are
-loaded from this repository first, then appended without duplicate names.
+Archive-size/ratio rankings are directly comparable because both runs use the
+same deterministic 11x32768 corpus. Timing rankings are intentionally separated.
 """
 from __future__ import annotations
-
-import json
-import os
+import argparse,csv,gc,hashlib,json,math,os,platform,statistics,sys,time
 from pathlib import Path
-import sys
 from typing import Any
-
-HERE = Path(__file__).resolve().parent
-if str(HERE) not in sys.path:
-    sys.path.insert(0, str(HERE))
-
-# Import current production suites before the legacy path can shadow their names.
+HERE=Path(__file__).resolve().parent
+if str(HERE) not in sys.path: sys.path.insert(0,str(HERE))
+from frozen_tier1_summary import SOURCE_ARTIFACT_SHA256,SOURCE_COMMIT,load_frozen_tier1_summary
+from historical_tier1_corpus import SEED,build_corpus
 from shtenco_tier1_engines import tier1_engine_suite
 from shtenco_tier1_v2 import tier1_v2_engine_suite
+MIB=1024*1024
 
-LEGACY = Path(os.environ.get("SHTENCO_LEGACY_COMPRESSION_DIR", "")).resolve()
-if not LEGACY.is_dir():
-    raise SystemExit(
-        "SHTENCO_LEGACY_COMPRESSION_DIR must point to the immutable snapshot's compression_lab directory"
-    )
-sys.path.insert(0, str(LEGACY))
+def _sha(data:bytes)->str:return hashlib.sha256(data).hexdigest()
+def _gm(values):
+    values=[float(v) for v in values if v is not None and v>0]
+    return math.exp(sum(map(math.log,values))/len(values)) if values else 0.0
+def _timed(fn,arg):
+    gc.collect();gc.disable();start=time.perf_counter_ns()
+    try:return fn(arg),(time.perf_counter_ns()-start)/1e6
+    finally:gc.enable()
+def systems():
+    out=[];seen=set()
+    for suite in (tier1_engine_suite(),tier1_v2_engine_suite()):
+        for name,family,engine in suite:
+            if name not in seen:out.append((name,family,engine));seen.add(name)
+    return out
 
-import benchmark_all_systems_exact as benchmark  # type: ignore  # noqa: E402
+def one(name,family,engine,dataset,data,repeats):
+    digest=_sha(data)
+    try:
+        arc=engine.compress(data);rest=engine.decompress(arc)
+        if rest!=data or _sha(rest)!=digest:raise ValueError("warm-up exactness failure")
+        enc=[];dec=[];sizes=[];hashes=[];modes=[]
+        for _ in range(repeats):
+            arc,t1=_timed(engine.compress,data);rest,t2=_timed(engine.decompress,arc)
+            if rest!=data or _sha(rest)!=digest:raise ValueError("timed exactness failure")
+            enc.append(t1);dec.append(t2);sizes.append(len(arc));hashes.append(_sha(arc))
+            modes.append(str(getattr(engine,"last_mode","native")))
+        size=int(statistics.median(sizes));e=statistics.median(enc);d=statistics.median(dec)
+        ratio=len(data)/max(1,size)
+        return {"dataset":dataset,"engine":name,"family":family,"status":"PASS","sha256":"PASS",
+                "original_bytes":len(data),"compressed_bytes_median":size,"compressed_bytes_min":min(sizes),
+                "compressed_bytes_max":max(sizes),"ratio":ratio,"encode_ms_median":e,"decode_ms_median":d,
+                "encode_mib_s":(len(data)/MIB)/max(e/1000,1e-12),"decode_mib_s":(len(data)/MIB)/max(d/1000,1e-12),
+                "score_ratio_per_ms":ratio/max(e,.001),"balanced_score":ratio/math.sqrt(max(e,.001)*max(d,.001)),
+                "archive_deterministic":len(set(hashes))==1,"archive_variation_bytes":max(sizes)-min(sizes),
+                "mode":statistics.mode(modes),"repeats":repeats,"measurement_run":"current"}
+    except Exception as exc:
+        return {"dataset":dataset,"engine":name,"family":family,"status":"FAIL","sha256":"FAIL",
+                "original_bytes":len(data),"compressed_bytes_median":None,"ratio":0.0,"encode_ms_median":None,
+                "decode_ms_median":None,"score_ratio_per_ms":0.0,"balanced_score":0.0,
+                "archive_deterministic":False,"mode":"—","repeats":repeats,"measurement_run":"current",
+                "error":f"{type(exc).__name__}: {exc}"}
 
-_ORIGINAL_BUILD_SYSTEMS = benchmark.build_systems
+def summarize(rows,count):
+    groups={}
+    for row in rows:groups.setdefault(row["engine"],[]).append(row)
+    out=[]
+    for name,items in groups.items():
+        good=[r for r in items if r["status"]=="PASS"]
+        out.append({"engine":name,"family":items[0]["family"],"measurement_run":"current",
+          "pass":len(good),"total":count,"full_pass":len(good)==count,
+          "geomean_ratio":_gm(r["ratio"] for r in good),
+          "geomean_encode_ms":_gm(r["encode_ms_median"] for r in good),
+          "geomean_decode_ms":_gm(r["decode_ms_median"] for r in good),
+          "geomean_score":_gm(r["score_ratio_per_ms"] for r in good),
+          "geomean_balanced_score":_gm(r["balanced_score"] for r in good),
+          "median_encode_mib_s":statistics.median([r["encode_mib_s"] for r in good]) if good else 0,
+          "median_decode_mib_s":statistics.median([r["decode_mib_s"] for r in good]) if good else 0,
+          "total_encode_ms":sum(float(r["encode_ms_median"] or 0) for r in good),
+          "total_decode_ms":sum(float(r["decode_ms_median"] or 0) for r in good),
+          "deterministic_datasets":sum(bool(r.get("archive_deterministic")) for r in good)})
+    return out
 
+def ranked(items,key,run=None):
+    rows=[r for r in items if r.get("full_pass") and r.get("family")!="REFERENCE"]
+    if run:rows=[r for r in rows if r.get("measurement_run")==run]
+    return sorted(rows,key=lambda r:float(r.get(key) or 0),reverse=True)
+def write_csv(path,rows):
+    keys=sorted({k for r in rows for k in r})
+    with path.open("w",newline="",encoding="utf-8") as f:
+        w=csv.DictWriter(f,fieldnames=keys);w.writeheader();w.writerows(rows)
+def table(title,items,metric):
+    lines=[f"## {title}","","| Rank | Engine | Run | Ratio | Metric | Encode ms |","|---:|---|---|---:|---:|---:|"]
+    for i,r in enumerate(items[:10],1):
+        lines.append(f"| {i} | {r['engine']} | {r.get('measurement_run')} | {r['geomean_ratio']:.6f}× | {r[metric]:.6f} | {r['total_encode_ms']:.3f} |")
+    return lines+[""]
 
-def build_unified_systems() -> list[Any]:
-    systems = _ORIGINAL_BUILD_SYSTEMS()
-    seen = {item.name for item in systems}
-    for suite in (tier1_engine_suite(), tier1_v2_engine_suite()):
-        for name, family, engine in suite:
-            if name in seen:
-                continue
-            systems.append(benchmark.SystemSpec(name, family, engine))
-            seen.add(name)
-    return systems
-
-
-def _output_path(argv: list[str]) -> Path:
-    for index, value in enumerate(argv):
-        if value == "--output" and index + 1 < len(argv):
-            return Path(argv[index + 1])
-        if value.startswith("--output="):
-            return Path(value.split("=", 1)[1])
-    return LEGACY / "output_unified_tier1"
-
-
-def _rank_map(items: list[dict[str, Any]], key: str, reverse: bool) -> dict[str, int]:
-    eligible = [item for item in items if item.get("full_pass")]
-    ordered = sorted(eligible, key=lambda item: float(item.get(key) or 0.0), reverse=reverse)
-    return {item["engine"]: index + 1 for index, item in enumerate(ordered)}
-
-
-def _write_unified_findings(output: Path) -> None:
-    report_path = output / "all_systems_report.json"
-    if not report_path.exists():
-        return
-    report = json.loads(report_path.read_text(encoding="utf-8"))
-    summary = report.get("summary", [])
-    rows = report.get("rows", [])
-    ratio_ranks = _rank_map(summary, "geomean_ratio", True)
-    score_ranks = _rank_map(summary, "geomean_score", True)
-    balanced_ranks = _rank_map(summary, "geomean_balanced_score", True)
-    speed_ranks = _rank_map(summary, "total_encode_ms", False)
-
-    proprietary = []
-    for item in summary:
-        if not str(item.get("engine", "")).startswith("SHTENCO"):
-            continue
-        enriched = dict(item)
-        name = enriched["engine"]
-        enriched.update(
-            ratio_rank=ratio_ranks.get(name),
-            score_rank=score_ranks.get(name),
-            balanced_rank=balanced_ranks.get(name),
-            speed_rank=speed_ranks.get(name),
-        )
-        proprietary.append(enriched)
-    proprietary.sort(key=lambda item: (item.get("score_rank") or 10**9, item["engine"]))
-
-    production = [
-        item for item in summary
-        if item.get("full_pass") and item.get("family") != "REFERENCE"
-    ]
-    top_ratio = sorted(production, key=lambda item: item.get("geomean_ratio", 0.0), reverse=True)[:10]
-    top_score = sorted(production, key=lambda item: item.get("geomean_score", 0.0), reverse=True)[:10]
-    top_balanced = sorted(production, key=lambda item: item.get("geomean_balanced_score", 0.0), reverse=True)[:10]
-
-    # Research-only lower envelope: best already-produced verified archive per dataset.
-    envelope = []
-    for dataset in sorted({row.get("dataset") for row in rows}):
-        passed = [
-            row for row in rows
-            if row.get("dataset") == dataset and row.get("status") == "PASS"
-            and row.get("family") != "REFERENCE"
-        ]
-        if not passed:
-            continue
-        winner = min(passed, key=lambda row: int(row["compressed_bytes_median"]))
-        envelope.append({
-            "dataset": dataset,
-            "engine": winner["engine"],
-            "bytes": winner["compressed_bytes_median"],
-            "original_bytes": winner["original_bytes"],
-        })
-
-    positions = {
-        "system_count": report.get("system_count"),
-        "dataset_count": report.get("dataset_count"),
-        "row_count": report.get("row_count"),
-        "pass_rows": report.get("pass_rows"),
-        "proprietary": proprietary,
-        "top_ratio": top_ratio,
-        "top_score": top_score,
-        "top_balanced": top_balanced,
-        "verified_oracle_envelope": envelope,
-    }
-    (output / "UNIFIED_TIER1_POSITIONS.json").write_text(
-        json.dumps(positions, ensure_ascii=False, indent=2, sort_keys=True), encoding="utf-8"
-    )
-
-    def table(items: list[dict[str, Any]], metric: str, label: str) -> list[str]:
-        lines = [f"## {label}", "", "| Rank | Engine | Family | Ratio | Encode ms | Score |", "|---:|---|---|---:|---:|---:|"]
-        for index, item in enumerate(items, 1):
-            lines.append(
-                f"| {index} | {item['engine']} | {item['family']} | "
-                f"{item.get('geomean_ratio', 0.0):.6f}× | {item.get('total_encode_ms', 0.0):.3f} | "
-                f"{item.get(metric, 0.0):.6f} |"
-            )
-        lines.append("")
-        return lines
-
-    shtenco_top5_score = sum(
-        str(item.get("engine", "")).startswith("SHTENCO") for item in top_score[:5]
-    )
-    shtenco_top5_ratio = sum(
-        str(item.get("engine", "")).startswith("SHTENCO") for item in top_ratio[:5]
-    )
-    exact_ok = report.get("pass_rows") == report.get("row_count")
-
-    lines = [
-        "# SHTENCO Unified Tier-1 Benchmark",
-        "",
-        f"- Systems: **{report.get('system_count')}**",
-        f"- Datasets: **{report.get('dataset_count')}**",
-        f"- Rows: **{report.get('row_count')}**",
-        f"- Exact PASS: **{report.get('pass_rows')}/{report.get('row_count')}**",
-        f"- SHTENCO systems in score TOP-5: **{shtenco_top5_score}**",
-        f"- SHTENCO systems in ratio TOP-5: **{shtenco_top5_ratio}**",
-        "",
-        "The verified oracle envelope below is a research lower bound assembled from existing rows; it is not ranked as a deployable compressor.",
-        "",
-    ]
-    lines += table(top_ratio, "geomean_ratio", "TOP-10 by compression ratio")
-    lines += table(top_score, "geomean_score", "TOP-10 by ratio / encode-time score")
-    lines += table(top_balanced, "geomean_balanced_score", "TOP-10 by balanced score")
-    lines += [
-        "## SHTENCO positions",
-        "",
-        "| Engine | Ratio rank | Score rank | Balanced rank | Speed rank | Full pass |",
-        "|---|---:|---:|---:|---:|:---:|",
-    ]
-    for item in proprietary:
-        lines.append(
-            f"| {item['engine']} | {item.get('ratio_rank') or '—'} | {item.get('score_rank') or '—'} | "
-            f"{item.get('balanced_rank') or '—'} | {item.get('speed_rank') or '—'} | "
-            f"{'yes' if item.get('full_pass') else 'no'} |"
-        )
-    lines += [
-        "",
-        "## Verified oracle envelope (not a ranked compressor)",
-        "",
-        "| Dataset | Best verified engine | Bytes | Original |",
-        "|---|---|---:|---:|",
-    ]
-    for item in envelope:
-        lines.append(f"| {item['dataset']} | {item['engine']} | {item['bytes']} | {item['original_bytes']} |")
-    lines += [
-        "",
-        "## Acceptance",
-        "",
-        f"- All rows exact: **{'PASS' if exact_ok else 'FAIL'}**",
-        f"- At least one SHTENCO score TOP-5: **{'PASS' if shtenco_top5_score >= 1 else 'FAIL'}**",
-        f"- At least one SHTENCO ratio TOP-5: **{'PASS' if shtenco_top5_ratio >= 1 else 'FAIL'}**",
-        "",
-    ]
-    (output / "UNIFIED_TIER1_FINDINGS.md").write_text("\n".join(lines), encoding="utf-8")
-
-
-benchmark.build_systems = build_unified_systems
-
-
-def main() -> None:
-    output = _output_path(sys.argv[1:])
-    benchmark.main()
-    _write_unified_findings(output)
-
-
-if __name__ == "__main__":
-    main()
+def main():
+    p=argparse.ArgumentParser();p.add_argument("--size",type=int,default=32768);p.add_argument("--repeats",type=int,default=3)
+    p.add_argument("--output",type=Path,default=HERE/"output_unified_tier1_v2");a=p.parse_args()
+    if a.size!=32768:raise SystemExit("frozen comparison requires --size 32768")
+    corpus=build_corpus(a.size);suite=systems();rows=[]
+    for dataset,data in corpus.items():
+        print(f"\n=== {dataset}: {len(data):,} bytes SHA256={_sha(data)} ===",flush=True)
+        for name,family,engine in suite:
+            row=one(name,family,engine,dataset,data,a.repeats);rows.append(row)
+            print(("PASS" if row["status"]=="PASS" else "FAIL"),name,
+                  f"ratio={row['ratio']:.4f}",f"ms={row.get('encode_ms_median')}",flush=True)
+    frozen=load_frozen_tier1_summary();meta=frozen["metadata"]
+    if meta["dataset_size"]!=a.size or meta["dataset_count"]!=len(corpus) or meta["pass_rows"]!=meta["row_count"]:
+        raise RuntimeError("frozen baseline integrity/dimensions mismatch")
+    current=summarize(rows,len(corpus));names={r["engine"] for r in current}
+    old=[]
+    for item in frozen["summary"]:
+        if item["engine"] not in names:
+            item=dict(item);item["measurement_run"]="frozen-20260730";old.append(item)
+    combined=old+current;ratio=ranked(combined,"geomean_ratio");score=ranked(combined,"geomean_score","current")
+    balanced=ranked(combined,"geomean_balanced_score","current")
+    frozen_score=ranked([{**r,"measurement_run":"frozen-20260730"} for r in frozen["summary"]],"geomean_score")
+    report={"schema":"shtenco-unified-tier1-v2-federated","seed":SEED,"source_commit":SOURCE_COMMIT,
+      "source_artifact_sha256":SOURCE_ARTIFACT_SHA256,"frozen_system_count":meta["system_count"],
+      "current_system_count":len(current),"system_count":len(combined),"dataset_count":len(corpus),
+      "dataset_size":a.size,"repeats":a.repeats,"current_row_count":len(rows),
+      "current_pass_rows":sum(r["status"]=="PASS" for r in rows),"current_rows":rows,
+      "current_summary":current,"summary":combined,"frozen_dataset_winners":frozen.get("dataset_winners",[]),
+      "environment":{"utc":time.strftime("%Y-%m-%dT%H:%M:%SZ",time.gmtime()),"python":sys.version,
+                     "platform":platform.platform(),"cpu_count":os.cpu_count()},
+      "timing_note":"frozen/current speed rankings are separate; combined ratio uses identical corpus bytes"}
+    top_ratio=sum(r["engine"].startswith("SHTENCO") for r in ratio[:5]);top_score=sum(r["engine"].startswith("SHTENCO") for r in score[:5])
+    lines=["# SHTENCO Unified Tier-1 v2 Results","",f"- Frozen systems: **{meta['system_count']}**",
+      f"- Current rerun: **{len(current)}**",f"- Combined unique systems: **{len(combined)}**",
+      f"- Current exact rows: **{report['current_pass_rows']}/{report['current_row_count']}**",
+      f"- SHTENCO in ratio TOP-5: **{top_ratio}**",f"- SHTENCO in current score TOP-5: **{top_score}**","",
+      "Archive-size rankings are directly comparable. Timing rankings are separated by run.",""]
+    lines+=table("Combined TOP-10 by compression ratio",ratio,"geomean_ratio")
+    lines+=table("Current TOP-10 by ratio / encode-time",score,"geomean_score")
+    lines+=table("Current TOP-10 by balanced score",balanced,"geomean_balanced_score")
+    lines+=table("Frozen 69-system TOP-10 by original score",frozen_score,"geomean_score")
+    a.output.mkdir(parents=True,exist_ok=True)
+    (a.output/"all_systems_report.json").write_text(json.dumps(report,ensure_ascii=False,indent=2,sort_keys=True),encoding="utf-8")
+    write_csv(a.output/"current_systems_rows.csv",rows);write_csv(a.output/"combined_systems_summary.csv",combined)
+    (a.output/"UNIFIED_TIER1_FINDINGS.md").write_text("\n".join(lines),encoding="utf-8")
+    positions={"system_count":len(combined),"dataset_count":len(corpus),"current_row_count":len(rows),
+      "current_pass_rows":report["current_pass_rows"],"source_commit":SOURCE_COMMIT,
+      "source_artifact_sha256":SOURCE_ARTIFACT_SHA256,"combined_ratio":ratio[:20],"current_score":score[:20],
+      "current_balanced":balanced[:20],"frozen_score":frozen_score[:20]}
+    (a.output/"UNIFIED_TIER1_POSITIONS.json").write_text(json.dumps(positions,ensure_ascii=False,indent=2),encoding="utf-8")
+    print("\n"+"\n".join(lines),flush=True)
+if __name__=="__main__":main()
