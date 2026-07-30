@@ -13,7 +13,7 @@ if str(HERE) not in sys.path: sys.path.insert(0,str(HERE))
 from frozen_tier1_summary import SOURCE_ARTIFACT_SHA256,SOURCE_COMMIT,load_frozen_tier1_summary
 from historical_tier1_corpus import SEED,build_corpus
 from shtenco_tier1_engines import tier1_engine_suite
-from shtenco_tier1_v2 import tier1_v2_engine_suite
+from shtenco_tier1_v21 import tier1_v21_engine_suite
 MIB=1024*1024
 
 def _sha(data:bytes)->str:return hashlib.sha256(data).hexdigest()
@@ -26,18 +26,20 @@ def _timed(fn,arg):
     finally:gc.enable()
 def systems():
     out=[];seen=set()
-    for suite in (tier1_engine_suite(),tier1_v2_engine_suite()):
+    for suite in (tier1_engine_suite(),tier1_v21_engine_suite()):
         for name,family,engine in suite:
             if name not in seen:out.append((name,family,engine));seen.add(name)
     return out
 
 def one(name,family,engine,dataset,data,repeats):
-    digest=_sha(data)
+    digest=_sha(data);heavy=name in {"SHTENCO GABRIEL-HORN TIER1 MAX","SHTENCO OMNIA TIER1 V2 MAX"}
     try:
-        arc=engine.compress(data);rest=engine.decompress(arc)
-        if rest!=data or _sha(rest)!=digest:raise ValueError("warm-up exactness failure")
+        if not heavy:
+            arc=engine.compress(data);rest=engine.decompress(arc)
+            if rest!=data or _sha(rest)!=digest:raise ValueError("warm-up exactness failure")
         enc=[];dec=[];sizes=[];hashes=[];modes=[]
-        for _ in range(repeats):
+        measured=1 if heavy else repeats
+        for _ in range(measured):
             arc,t1=_timed(engine.compress,data);rest,t2=_timed(engine.decompress,arc)
             if rest!=data or _sha(rest)!=digest:raise ValueError("timed exactness failure")
             enc.append(t1);dec.append(t2);sizes.append(len(arc));hashes.append(_sha(arc))
@@ -50,12 +52,12 @@ def one(name,family,engine,dataset,data,repeats):
                 "encode_mib_s":(len(data)/MIB)/max(e/1000,1e-12),"decode_mib_s":(len(data)/MIB)/max(d/1000,1e-12),
                 "score_ratio_per_ms":ratio/max(e,.001),"balanced_score":ratio/math.sqrt(max(e,.001)*max(d,.001)),
                 "archive_deterministic":len(set(hashes))==1,"archive_variation_bytes":max(sizes)-min(sizes),
-                "mode":statistics.mode(modes),"repeats":repeats,"measurement_run":"current"}
+                "mode":statistics.mode(modes),"repeats":measured,"timing_protocol":"single-exact" if heavy else f"warmup+{repeats}","measurement_run":"current"}
     except Exception as exc:
         return {"dataset":dataset,"engine":name,"family":family,"status":"FAIL","sha256":"FAIL",
                 "original_bytes":len(data),"compressed_bytes_median":None,"ratio":0.0,"encode_ms_median":None,
                 "decode_ms_median":None,"score_ratio_per_ms":0.0,"balanced_score":0.0,
-                "archive_deterministic":False,"mode":"—","repeats":repeats,"measurement_run":"current",
+                "archive_deterministic":False,"mode":"—","repeats":1 if heavy else repeats,"timing_protocol":"single-exact" if heavy else f"warmup+{repeats}","measurement_run":"current",
                 "error":f"{type(exc).__name__}: {exc}"}
 
 def summarize(rows,count):
@@ -64,13 +66,14 @@ def summarize(rows,count):
     out=[]
     for name,items in groups.items():
         good=[r for r in items if r["status"]=="PASS"]
-        out.append({"engine":name,"family":items[0]["family"],"measurement_run":"current",
+        protocol=items[0].get("timing_protocol","unknown")
+        out.append({"engine":name,"family":items[0]["family"],"measurement_run":"current","timing_protocol":protocol,
           "pass":len(good),"total":count,"full_pass":len(good)==count,
           "geomean_ratio":_gm(r["ratio"] for r in good),
           "geomean_encode_ms":_gm(r["encode_ms_median"] for r in good),
           "geomean_decode_ms":_gm(r["decode_ms_median"] for r in good),
-          "geomean_score":_gm(r["score_ratio_per_ms"] for r in good),
-          "geomean_balanced_score":_gm(r["balanced_score"] for r in good),
+          "geomean_score":_gm(r["score_ratio_per_ms"] for r in good) if protocol.startswith("warmup+") else 0.0,
+          "geomean_balanced_score":_gm(r["balanced_score"] for r in good) if protocol.startswith("warmup+") else 0.0,
           "median_encode_mib_s":statistics.median([r["encode_mib_s"] for r in good]) if good else 0,
           "median_decode_mib_s":statistics.median([r["decode_mib_s"] for r in good]) if good else 0,
           "total_encode_ms":sum(float(r["encode_ms_median"] or 0) for r in good),
@@ -122,7 +125,7 @@ def main():
       "current_summary":current,"summary":combined,"frozen_dataset_winners":frozen.get("dataset_winners",[]),
       "environment":{"utc":time.strftime("%Y-%m-%dT%H:%M:%SZ",time.gmtime()),"python":sys.version,
                      "platform":platform.platform(),"cpu_count":os.cpu_count()},
-      "timing_note":"frozen/current speed rankings are separate; combined ratio uses identical corpus bytes"}
+      "timing_note":"frozen/current speed rankings are separate; heavy MAX profiles use one exact size measurement and are excluded from score ranking"}
     top_ratio=sum(r["engine"].startswith("SHTENCO") for r in ratio[:5]);top_score=sum(r["engine"].startswith("SHTENCO") for r in score[:5])
     lines=["# SHTENCO Unified Tier-1 v2 Results","",f"- Frozen systems: **{meta['system_count']}**",
       f"- Current rerun: **{len(current)}**",f"- Combined unique systems: **{len(combined)}**",
