@@ -1,0 +1,124 @@
+name: Exact Benchmark — All Compression Systems
+
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  exact-all-systems:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    env:
+      PYTHONHASHSEED: "0"
+      PYTHONUNBUFFERED: "1"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: compression_lab/requirements_v4.txt
+
+      - name: Install pinned dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r compression_lab/requirements_v4.txt
+
+      - name: Compile benchmark and compression systems
+        run: |
+          python -m py_compile \
+            compression_lab/benchmark_all_systems_exact.py \
+            compression_lab/egd256_web_app_v3.py \
+            compression_lab/benchmark_graph_ai_v5.py \
+            compression_lab/benchmark_graph_ai_v51.py \
+            compression_lab/shtenco_graph_ai_core.py \
+            compression_lab/shtenco_graph_ai_v51.py \
+            compression_lab/shtenco_graph_ai_v52.py \
+            compression_lab/umc256_engine.py
+
+      - name: Existing correctness tests
+        run: |
+          python -m pytest -q compression_lab/test_graph_ai_v5.py
+          python compression_lab/egd256_web_app_v3.py --self-test
+          python - <<'PY'
+          from compression_lab.umc256_engine import UMC256Engine
+          samples = [
+              b'',
+              b'SHTENCO-UMC-256-GRAPH' * 1000,
+              bytes(range(256)) * 64,
+              bytes((i * 37 + 11) & 255 for i in range(32768)),
+          ]
+          for mode in ('fast', 'balanced', 'max'):
+              engine = UMC256Engine(mode=mode)
+              for data in samples:
+                  archive = engine.compress(data)
+                  assert engine.decompress(archive) == data
+          print('UMC-256 direct round-trip: PASS')
+          PY
+
+      - name: Exact benchmark all unique systems
+        run: |
+          set -o pipefail
+          rm -rf compression_lab/output_all_systems_exact
+          mkdir -p compression_lab/output_all_systems_exact
+          python compression_lab/benchmark_all_systems_exact.py \
+            --size 32768 \
+            --repeats 3 \
+            --output compression_lab/output_all_systems_exact \
+            2>&1 | tee compression_lab/output_all_systems_exact/benchmark_console.log
+
+      - name: Build benchmark package
+        if: always()
+        run: |
+          mkdir -p dist/SHTENCO_EXACT_ALL_SYSTEMS_BENCHMARK
+          cp compression_lab/benchmark_all_systems_exact.py dist/SHTENCO_EXACT_ALL_SYSTEMS_BENCHMARK/
+          cp compression_lab/BENCHMARK_ALL_SYSTEMS_METHODOLOGY.md dist/SHTENCO_EXACT_ALL_SYSTEMS_BENCHMARK/
+          cp compression_lab/output_all_systems_exact/* dist/SHTENCO_EXACT_ALL_SYSTEMS_BENCHMARK/ || true
+          cp compression_lab/requirements_v4.txt dist/SHTENCO_EXACT_ALL_SYSTEMS_BENCHMARK/requirements.txt
+          cat > dist/SHTENCO_EXACT_ALL_SYSTEMS_BENCHMARK/README.txt <<'EOF'
+          SHTENCO exact benchmark of every unique compression system available in the repository.
+          Environment: GitHub Actions ubuntu-24.04, Python 3.11, pinned requirements.
+          Method: one warm-up, three timed repetitions, median result, byte equality and SHA-256 every repetition.
+          See ALL_SYSTEMS_BENCHMARK.md/html, all_systems_summary.csv and all_systems_report.json.
+          EOF
+          cd dist
+          zip -r -9 SHTENCO_EXACT_ALL_SYSTEMS_BENCHMARK.zip SHTENCO_EXACT_ALL_SYSTEMS_BENCHMARK
+          sha256sum SHTENCO_EXACT_ALL_SYSTEMS_BENCHMARK.zip > SHA256SUMS_EXACT_BENCHMARK.txt
+
+      - name: Upload reports and logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: SHTENCO_EXACT_ALL_SYSTEMS_BENCHMARK
+          path: |
+            dist/SHTENCO_EXACT_ALL_SYSTEMS_BENCHMARK.zip
+            dist/SHA256SUMS_EXACT_BENCHMARK.txt
+            compression_lab/output_all_systems_exact/
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Enforce complete correctness
+        if: always()
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          path = Path('compression_lab/output_all_systems_exact/all_systems_report.json')
+          if not path.exists():
+              raise SystemExit('benchmark report was not generated')
+          report = json.loads(path.read_text(encoding='utf-8'))
+          print('system_count =', report['system_count'])
+          print('dataset_count =', report['dataset_count'])
+          print('pass_rows =', report['pass_rows'])
+          print('row_count =', report['row_count'])
+          if report['system_count'] < 60:
+              raise SystemExit('expected at least 60 unique systems')
+          if report['pass_rows'] != report['row_count']:
+              failed = [r for r in report['rows'] if r['status'] != 'PASS']
+              print(json.dumps(failed, ensure_ascii=False, indent=2))
+              raise SystemExit(f"{len(failed)} benchmark rows failed correctness")
+          PY
