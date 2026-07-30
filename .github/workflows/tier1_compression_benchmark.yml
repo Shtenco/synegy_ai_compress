@@ -1,0 +1,96 @@
+name: SHTENCO Tier-1 Compression Benchmark
+
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  tier1-exact:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    env:
+      PYTHONHASHSEED: "0"
+      PYTHONUNBUFFERED: "1"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: compression_lab/requirements_v4.txt
+      - name: Install pinned dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r compression_lab/requirements_v4.txt
+      - name: Compile and test Tier-1 engines
+        run: |
+          python -m py_compile compression_lab/shtenco_tier1_engines.py compression_lab/benchmark_tier1_exact.py
+          python -m pytest -q compression_lab/test_tier1_engines.py compression_lab/test_graph_ai_v5.py
+          python compression_lab/egd256_web_app_v3.py --self-test
+      - name: Exact benchmark with all legacy and Tier-1 systems
+        run: |
+          set -o pipefail
+          rm -rf compression_lab/output_tier1_exact
+          mkdir -p compression_lab/output_tier1_exact
+          python compression_lab/benchmark_tier1_exact.py \
+            --size 32768 \
+            --repeats 3 \
+            --output compression_lab/output_tier1_exact \
+            2>&1 | tee compression_lab/output_tier1_exact/benchmark_console.log
+      - name: Analyze Tier-1 positions
+        run: |
+          python - <<'PY'
+          import csv, json
+          from pathlib import Path
+          out = Path('compression_lab/output_tier1_exact')
+          report = json.loads((out/'all_systems_report.json').read_text(encoding='utf-8'))
+          summary = report['summary']
+          tier1 = [r for r in summary if r['family'] == 'SHTENCO-TIER1']
+          by_score = sorted(summary, key=lambda r: r['geomean_score'], reverse=True)
+          by_ratio = sorted(summary, key=lambda r: r['geomean_ratio'], reverse=True)
+          score_pos = {r['engine']: i+1 for i,r in enumerate(by_score)}
+          ratio_pos = {r['engine']: i+1 for i,r in enumerate(by_ratio)}
+          analysis = {
+              'system_count': report['system_count'],
+              'dataset_count': report['dataset_count'],
+              'pass_rows': report['pass_rows'],
+              'row_count': report['row_count'],
+              'tier1': [{**r, 'score_position': score_pos[r['engine']], 'ratio_position': ratio_pos[r['engine']]} for r in tier1],
+              'top10_score': by_score[:10],
+              'top10_ratio': by_ratio[:10],
+          }
+          (out/'TIER1_POSITIONS.json').write_text(json.dumps(analysis, ensure_ascii=False, indent=2), encoding='utf-8')
+          lines = ['# SHTENCO Tier-1 positions', '', '| Engine | Score rank | Ratio rank | Ratio | Score |', '|---|---:|---:|---:|---:|']
+          for r in sorted(analysis['tier1'], key=lambda x: x['score_position']):
+              lines.append(f"| {r['engine']} | {r['score_position']} | {r['ratio_position']} | {r['geomean_ratio']:.6f}x | {r['geomean_score']:.9f} |")
+          (out/'TIER1_POSITIONS.md').write_text('\n'.join(lines)+'\n', encoding='utf-8')
+          print('\n'.join(lines))
+          if report['pass_rows'] != report['row_count']:
+              raise SystemExit('correctness failures exist')
+          if not any(item['score_position'] <= 5 for item in analysis['tier1']):
+              raise SystemExit('Tier-1 target not reached: no SHTENCO Tier-1 engine in score top 5')
+          PY
+      - name: Package reports and source
+        if: always()
+        run: |
+          mkdir -p dist/SHTENCO_TIER1_COMPRESSION
+          cp compression_lab/shtenco_tier1_engines.py dist/SHTENCO_TIER1_COMPRESSION/
+          cp compression_lab/benchmark_tier1_exact.py dist/SHTENCO_TIER1_COMPRESSION/
+          cp compression_lab/TIER1_TECHNOLOGY_INVENTORY.md dist/SHTENCO_TIER1_COMPRESSION/
+          cp compression_lab/output_tier1_exact/* dist/SHTENCO_TIER1_COMPRESSION/ || true
+          cp compression_lab/requirements_v4.txt dist/SHTENCO_TIER1_COMPRESSION/requirements.txt
+          cd dist
+          zip -r -9 SHTENCO_TIER1_COMPRESSION_FULL.zip SHTENCO_TIER1_COMPRESSION
+          sha256sum SHTENCO_TIER1_COMPRESSION_FULL.zip > SHA256SUMS_TIER1.txt
+      - name: Upload Tier-1 artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: SHTENCO_TIER1_COMPRESSION_FULL
+          path: |
+            dist/SHTENCO_TIER1_COMPRESSION_FULL.zip
+            dist/SHA256SUMS_TIER1.txt
+            compression_lab/output_tier1_exact/
+          if-no-files-found: error
+          retention-days: 30
