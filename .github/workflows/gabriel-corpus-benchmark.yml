@@ -37,19 +37,21 @@ jobs:
         run: |
           python -m py_compile \
             compression_lab/benchmark_gabriel_corpus.py \
+            compression_lab/benchmark_gabriel_corpus_exact.py \
             compression_lab/gabriel_horn_engine.py \
             compression_lab/shtenco_tier1_engines.py
       - name: Unit tests
         run: |
           python -m pytest -q \
             compression_lab/test_benchmark_gabriel_corpus.py \
+            compression_lab/test_benchmark_gabriel_corpus_exact.py \
             compression_lab/test_gabriel_horn_engine.py \
             compression_lab/test_tier1_engines.py
       - name: Exact public-engine corpus benchmark
         run: |
           SIZE="${{ github.event.inputs.size || '4096' }}"
           REPEATS="${{ github.event.inputs.repeats || '1' }}"
-          python compression_lab/benchmark_gabriel_corpus.py \
+          python compression_lab/benchmark_gabriel_corpus_exact.py \
             --size "$SIZE" \
             --repeats "$REPEATS" \
             --warmups 0 \
