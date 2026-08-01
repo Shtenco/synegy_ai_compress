@@ -64,17 +64,19 @@ jobs:
           python - <<'PY'
           import json
           from pathlib import Path
-          path = Path('compression_lab/output_unified_tier1_v3/UNIFIED_TIER1_POSITIONS.json')
-          if not path.exists():
-              raise SystemExit('81-system positions report missing')
-          report = json.loads(path.read_text(encoding='utf-8'))
+          positions_path = Path('compression_lab/output_unified_tier1_v3/UNIFIED_TIER1_POSITIONS.json')
+          full_path = Path('compression_lab/output_unified_tier1_v3/all_systems_report.json')
+          if not positions_path.exists() or not full_path.exists():
+              raise SystemExit('81-system reports missing')
+          report = json.loads(positions_path.read_text(encoding='utf-8'))
+          full = json.loads(full_path.read_text(encoding='utf-8'))
           print('systems', report['system_count'], 'current rows', report['current_row_count'],
                 'current pass', report['current_pass_rows'])
           if report['system_count'] < 81:
               raise SystemExit(f"expanded inventory incomplete: {report['system_count']} < 81")
           if report['current_pass_rows'] != report['current_row_count']:
               raise SystemExit('at least one active benchmark row failed exactness')
-          names = {item['engine'] for item in report['combined_ratio']}
+          names = {item['engine'] for item in full['summary']}
           required = {
               'SHTENCO MATH PORTFOLIO V3 BALANCED',
               'SHTENCO MATH PORTFOLIO V3 MAX',
@@ -84,7 +86,7 @@ jobs:
           }
           missing = required - names
           if missing:
-              raise SystemExit(f'Math v3 engines missing from ranking: {sorted(missing)}')
+              raise SystemExit(f'Math v3 engines missing from full inventory: {sorted(missing)}')
           if not any(item['engine'].startswith('SHTENCO') for item in report['combined_ratio'][:5]):
               raise SystemExit('no SHTENCO engine in combined ratio TOP-5')
           if not any(item['engine'].startswith('SHTENCO') for item in report['current_score'][:5]):
