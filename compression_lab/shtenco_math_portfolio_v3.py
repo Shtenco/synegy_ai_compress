@@ -249,7 +249,7 @@ class ShtencoMathExpertV3:
         if len(out)!=n or sha(out)!=d:raise ValueError("Math v3 SHA/size mismatch")
         return out
 
-OMAGIC=b"SOM3"; OHEADER=struct.Struct(">4sBBQ32s"); BASE,MATH=0,1
+OMAGIC=b"SOM3"; BASE,MATH=0,1
 class ShtencoOmniaMathV3:
     family="SHTENCO-OMNIA-MATH-V3"
     def __init__(self,profile:str="balanced",enable_ec:bool=False):
@@ -269,16 +269,15 @@ class ShtencoOmniaMathV3:
         source=bytes(source);choices=[]
         for r,p,decoder in ((BASE,self.base.compress(source),self.base.decompress),(MATH,self.math.compress(source),self.math.decompress)):
             restored=decoder(p)
-            if restored==source and sha(restored)==sha(source):choices.append((r,OHEADER.pack(OMAGIC,VERSION,r,len(source),sha(source))+p))
+            if restored==source and sha(restored)==sha(source):choices.append((r,OMAGIC+bytes([VERSION,r])+p))
         r,a=min(choices,key=lambda x:(len(x[1]),x[0]));self.last_mode="omnia-baseline" if r==BASE else f"math:{self.math.last_mode}"
         if self.decompress(a)!=source:raise ValueError("OMNIA-MATH verification failed")
         return a
     def decompress(self,a:bytes)->bytes:
-        if len(a)<OHEADER.size:raise ValueError("truncated OMNIA-MATH")
-        m,v,r,n,d=OHEADER.unpack_from(a);p=a[OHEADER.size:]
-        if m!=OMAGIC or v!=VERSION:raise ValueError("bad OMNIA-MATH")
+        if len(a)<6 or a[:4]!=OMAGIC or a[4]!=VERSION:raise ValueError("bad OMNIA-MATH")
+        r=a[5];p=a[6:]
         out=self.base.decompress(p) if r==BASE else self.math.decompress(p) if r==MATH else None
-        if out is None or len(out)!=n or sha(out)!=d:raise ValueError("OMNIA-MATH SHA/size mismatch")
+        if out is None:raise ValueError("unknown OMNIA-MATH route")
         return out
 
 def math_v3_engine_suite():
