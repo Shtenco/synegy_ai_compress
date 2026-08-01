@@ -2,7 +2,7 @@
 """Federated 81-system benchmark: frozen 69 + active Tier-1 + Math v3.
 
 This adapter deliberately reuses the exact historical corpus, report schema and
-ranking implementation from ``benchmark_unified_tier1.py``.  It only extends the
+ranking implementation from ``benchmark_unified_tier1.py``. It only extends the
 active engine inventory and marks the expensive mathematical MAX portfolios as
 single-exact measurements, matching the existing heavy-profile protocol.
 """
@@ -13,6 +13,9 @@ import statistics
 import benchmark_unified_tier1 as base
 from shtenco_math_portfolio_v3 import math_v3_engine_suite
 
+
+# Preserve the original function before replacing base.one below.
+ORIGINAL_ONE = base.one
 
 HEAVY_MATH_ENGINES = {
     "SHTENCO MATH PORTFOLIO V3 MAX",
@@ -39,27 +42,15 @@ def systems():
 def one(name, family, engine, dataset, data, repeats):
     """Use the original protocol except for expensive Math MAX profiles."""
     if name not in HEAVY_MATH_ENGINES:
-        return base.one(name, family, engine, dataset, data, repeats)
+        return ORIGINAL_ONE(name, family, engine, dataset, data, repeats)
 
     digest = base._sha(data)
     try:
-        enc = []
-        dec = []
-        sizes = []
-        hashes = []
-        modes = []
         archive, encode_ms = base._timed(engine.compress, data)
         restored, decode_ms = base._timed(engine.decompress, archive)
         if restored != data or base._sha(restored) != digest:
             raise ValueError("single-exact Math MAX verification failure")
-        enc.append(encode_ms)
-        dec.append(decode_ms)
-        sizes.append(len(archive))
-        hashes.append(base._sha(archive))
-        modes.append(str(getattr(engine, "last_mode", "native")))
-        size = int(statistics.median(sizes))
-        encode_median = statistics.median(enc)
-        decode_median = statistics.median(dec)
+        size = len(archive)
         ratio = len(data) / max(1, size)
         return {
             "dataset": dataset,
@@ -69,18 +60,18 @@ def one(name, family, engine, dataset, data, repeats):
             "sha256": "PASS",
             "original_bytes": len(data),
             "compressed_bytes_median": size,
-            "compressed_bytes_min": min(sizes),
-            "compressed_bytes_max": max(sizes),
+            "compressed_bytes_min": size,
+            "compressed_bytes_max": size,
             "ratio": ratio,
-            "encode_ms_median": encode_median,
-            "decode_ms_median": decode_median,
-            "encode_mib_s": (len(data) / base.MIB) / max(encode_median / 1000, 1e-12),
-            "decode_mib_s": (len(data) / base.MIB) / max(decode_median / 1000, 1e-12),
-            "score_ratio_per_ms": ratio / max(encode_median, 0.001),
-            "balanced_score": ratio / max((encode_median * decode_median) ** 0.5, 0.001),
-            "archive_deterministic": len(set(hashes)) == 1,
-            "archive_variation_bytes": max(sizes) - min(sizes),
-            "mode": statistics.mode(modes),
+            "encode_ms_median": encode_ms,
+            "decode_ms_median": decode_ms,
+            "encode_mib_s": (len(data) / base.MIB) / max(encode_ms / 1000, 1e-12),
+            "decode_mib_s": (len(data) / base.MIB) / max(decode_ms / 1000, 1e-12),
+            "score_ratio_per_ms": ratio / max(encode_ms, 0.001),
+            "balanced_score": ratio / max((encode_ms * decode_ms) ** 0.5, 0.001),
+            "archive_deterministic": True,
+            "archive_variation_bytes": 0,
+            "mode": str(getattr(engine, "last_mode", "native")),
             "repeats": 1,
             "timing_protocol": "single-exact",
             "measurement_run": "current",
