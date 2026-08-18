@@ -1,0 +1,73 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://sinergy.system/schemas/archive.manifest/v1",
+  "title": "SINERGY ArchiveManifest v1",
+  "type": "object",
+  "additionalProperties": false,
+  "$defs": {
+    "hex40": {"type": "string", "pattern": "^[a-fA-F0-9]{40}$"},
+    "hex64": {"type": "string", "pattern": "^[a-fA-F0-9]{64}$"}
+  },
+  "required": [
+    "schema",
+    "snapshot_id",
+    "source_repository",
+    "source_ref",
+    "source_commit",
+    "created_at",
+    "purpose",
+    "immutable",
+    "authority",
+    "entries",
+    "entry_count",
+    "total_uncompressed_bytes",
+    "source_tree_digest",
+    "compression_codec",
+    "compressed_artifact_sha256",
+    "manifest_digest"
+  ],
+  "properties": {
+    "schema": {"const": "archive.manifest/v1"},
+    "snapshot_id": {"type": "string", "minLength": 1},
+    "source_repository": {"type": "string", "pattern": "^[^/]+/[^/]+$"},
+    "source_ref": {"type": "string", "minLength": 1},
+    "source_commit": {"$ref": "#/$defs/hex40"},
+    "created_at": {"type": "string", "pattern": "Z$"},
+    "purpose": {
+      "enum": [
+        "LEGACY_PROVENANCE",
+        "REPRODUCIBILITY",
+        "BENCHMARK_EVIDENCE",
+        "RELEASE_SNAPSHOT",
+        "MIGRATION_BASELINE"
+      ]
+    },
+    "immutable": {"const": true},
+    "authority": {"const": "ARCHIVE_ONLY"},
+    "entries": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["path", "size_bytes", "sha256", "media_type"],
+        "properties": {
+          "path": {"type": "string", "minLength": 1},
+          "size_bytes": {"type": "integer", "minimum": 0},
+          "sha256": {"$ref": "#/$defs/hex64"},
+          "media_type": {"type": "string", "minLength": 1}
+        }
+      }
+    },
+    "entry_count": {"type": "integer", "minimum": 1},
+    "total_uncompressed_bytes": {"type": "integer", "minimum": 0},
+    "source_tree_digest": {"$ref": "#/$defs/hex64"},
+    "compression_codec": {
+      "oneOf": [{"type": "string", "minLength": 1}, {"type": "null"}]
+    },
+    "compressed_artifact_sha256": {
+      "oneOf": [{"$ref": "#/$defs/hex64"}, {"type": "null"}]
+    },
+    "manifest_digest": {"$ref": "#/$defs/hex64"}
+  }
+}
