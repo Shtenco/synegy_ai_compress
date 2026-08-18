@@ -9,6 +9,7 @@ from typing import Iterable
 
 SCHEMA = "archive.manifest/v1"
 HEX = frozenset("0123456789abcdef")
+MAX_SAFE_JSON_INTEGER = 9_007_199_254_740_991
 ALLOWED_PURPOSES = frozenset(
     {
         "LEGACY_PROVENANCE",
@@ -67,8 +68,10 @@ class ArchiveEntry:
             raise ArchiveManifestError("path must be a normalized relative path")
         if isinstance(self.size_bytes, bool) or not isinstance(self.size_bytes, int):
             raise ArchiveManifestError("size_bytes must be an integer")
-        if self.size_bytes < 0:
-            raise ArchiveManifestError("size_bytes must be non-negative")
+        if not 0 <= self.size_bytes <= MAX_SAFE_JSON_INTEGER:
+            raise ArchiveManifestError(
+                "size_bytes must be a non-negative cross-language safe integer"
+            )
         media_type = _text(self.media_type, "media_type")
         object.__setattr__(self, "path", path)
         object.__setattr__(self, "sha256", _hex(self.sha256, 64, "sha256"))
@@ -126,6 +129,13 @@ class ArchiveManifest:
         if len(paths) != len(set(paths)):
             raise ArchiveManifestError("archive entry paths must be unique")
         entries = tuple(sorted(entries, key=lambda item: item.path))
+        if len(entries) > MAX_SAFE_JSON_INTEGER:
+            raise ArchiveManifestError("entry_count exceeds cross-language safe range")
+        total_bytes = sum(item.size_bytes for item in entries)
+        if total_bytes > MAX_SAFE_JSON_INTEGER:
+            raise ArchiveManifestError(
+                "total_uncompressed_bytes exceeds cross-language safe range"
+            )
 
         codec = self.compression_codec
         artifact_digest = self.compressed_artifact_sha256
