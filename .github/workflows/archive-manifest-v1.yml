@@ -1,0 +1,33 @@
+name: archive-manifest-v1
+
+on:
+  pull_request:
+    paths:
+      - 'sinergy_archive/**'
+      - 'schemas/archive_manifest_v1.schema.json'
+      - 'tests/test_archive_manifest.py'
+      - 'tests/test_archive_manifest_schema.py'
+      - 'docs/ARCHIVE_MANIFEST_V1_20260818.md'
+      - '.github/workflows/archive-manifest-v1.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: archive-manifest-v1-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  archive-contract:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install pytest
+        run: python -m pip install --upgrade pip pytest
+      - name: Compile archive protocol
+        run: python -m compileall -q sinergy_archive
+      - name: Run archive manifest regressions
+        run: python -m pytest tests/test_archive_manifest.py tests/test_archive_manifest_schema.py -q
