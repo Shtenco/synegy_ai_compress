@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import pytest
+
 from .dedup_catalog import (
     ChunkEvidence,
     ContentManifest,
@@ -33,11 +35,21 @@ def test_public_identical_chunks_deduplicate_in_same_domain() -> None:
     assert catalog.unique_bytes == 300
 
 
-def test_private_chunk_commitment_is_tenant_domain_separated() -> None:
+def test_private_chunk_commitment_is_keyed_and_cross_tenant_isolated() -> None:
     data = b"same private bytes"
-    a = chunk_commitment(data, scope=DedupScope.TENANT_PRIVATE, tenant_id="company-a")
-    b = chunk_commitment(data, scope=DedupScope.TENANT_PRIVATE, tenant_id="company-b")
-    assert a != b
+    key_a = b"a" * 32
+    key_b = b"b" * 32
+    a1 = chunk_commitment(data, scope=DedupScope.TENANT_PRIVATE, tenant_dedup_key=key_a)
+    a2 = chunk_commitment(data, scope=DedupScope.TENANT_PRIVATE, tenant_dedup_key=key_a)
+    b = chunk_commitment(data, scope=DedupScope.TENANT_PRIVATE, tenant_dedup_key=key_b)
+    assert a1 == a2
+    assert a1 != b
+    assert domain_tag(DedupScope.TENANT_PRIVATE, key_a) != domain_tag(DedupScope.TENANT_PRIVATE, key_b)
+
+
+def test_private_dedup_refuses_public_identifier_as_weak_key() -> None:
+    with pytest.raises(ValueError, match="128 bits"):
+        chunk_commitment(b"secret", scope=DedupScope.TENANT_PRIVATE, tenant_dedup_key=b"company-a")
 
 
 def test_end_to_end_saving_factor_is_product_of_measured_factors() -> None:
