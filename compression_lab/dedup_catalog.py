@@ -1,16 +1,21 @@
 #!/usr/bin/env python3
 """Scoped content-addressed deduplication evidence for SYNERGY storage.
 
-Public/opt-in data may share one global dedup domain. Private data is domain
-separated by tenant so an unrelated tenant cannot probe whether identical
-private content already exists. This module stores only commitments/byte counts;
-actual encrypted chunk placement belongs to the storage provider layer.
+Public/opt-in data may share a global content-addressed domain. Private dedup uses
+a tenant-managed secret key: chunk identifiers are HMAC-SHA256 values, not a
+public hash of tenant id + plaintext. The chain/provider can commit the dedup
+domain and byte accounting without learning the secret.
+
+This reduces cross-tenant confirmation attacks. It does not hide object sizes,
+access timing or every storage-side metadata channel; those require encryption,
+padding and provider-access policy at higher layers.
 """
 from __future__ import annotations
 
 from dataclasses import dataclass
 from enum import StrEnum
 import hashlib
+import hmac
 
 
 class DedupScope(StrEnum):
@@ -45,18 +50,46 @@ class DedupReceipt:
     catalog_root: str
 
 
-def domain_tag(scope: DedupScope, tenant_id: str | None = None) -> str:
+PUBLIC_DOMAIN = "SYNERGIA:DEDUP:PUBLIC:V2"
+PRIVATE_DOMAIN_PREFIX = b"SYNERGIA:DEDUP:TENANT-DOMAIN:V2\x00"
+PRIVATE_CHUNK_PREFIX = b"SYNERGIA:DEDUP:TENANT-CHUNK:V2\x00"
+
+
+def _private_key(tenant_dedup_key: bytes | bytearray | memoryview | None) -> bytes:
+    if tenant_dedup_key is None:
+        raise ValueError("tenant_dedup_key required for private dedup scope")
+    key = bytes(tenant_dedup_key)
+    if len(key) < 16:
+        raise ValueError("tenant_dedup_key must contain at least 128 bits")
+    return key
+
+
+def private_domain_id(tenant_dedup_key: bytes | bytearray | memoryview) -> str:
+    key = _private_key(tenant_dedup_key)
+    # This is a commitment/domain label, not the secret itself.
+    return hashlib.sha256(PRIVATE_DOMAIN_PREFIX + key).hexdigest()
+
+
+def domain_tag(
+    scope: DedupScope,
+    tenant_dedup_key: bytes | bytearray | memoryview | None = None,
+) -> str:
     if scope == DedupScope.PUBLIC:
-        return "SYNERGIA:DEDUP:PUBLIC:V1"
-    tenant = (tenant_id or "").strip()
-    if not tenant:
-        raise ValueError("tenant_id required for private dedup scope")
-    return "SYNERGIA:DEDUP:TENANT:V1:" + hashlib.sha256(tenant.encode()).hexdigest()
+        return PUBLIC_DOMAIN
+    return "SYNERGIA:DEDUP:TENANT:V2:" + private_domain_id(_private_key(tenant_dedup_key))
 
 
-def chunk_commitment(data: bytes, *, scope: DedupScope, tenant_id: str | None = None) -> str:
-    tag = domain_tag(scope, tenant_id)
-    return hashlib.sha256(tag.encode() + b"\x00" + bytes(data)).hexdigest()
+def chunk_commitment(
+    data: bytes,
+    *,
+    scope: DedupScope,
+    tenant_dedup_key: bytes | bytearray | memoryview | None = None,
+) -> str:
+    payload = bytes(data)
+    if scope == DedupScope.PUBLIC:
+        return hashlib.sha256(PUBLIC_DOMAIN.encode() + b"\x00" + payload).hexdigest()
+    key = _private_key(tenant_dedup_key)
+    return hmac.new(key, PRIVATE_CHUNK_PREFIX + payload, hashlib.sha256).hexdigest()
 
 
 class DedupCatalog:
@@ -76,6 +109,8 @@ class DedupCatalog:
     def add(self, manifest: ContentManifest) -> DedupReceipt:
         if manifest.content_id in self._content_ids:
             raise ValueError("duplicate content_id")
+        if not manifest.domain_id:
+            raise ValueError("dedup domain commitment required")
         if manifest.logical_archive_bytes <= 0:
             raise ValueError("logical_archive_bytes must be positive")
         if not manifest.chunks:
@@ -111,7 +146,7 @@ class DedupCatalog:
         )
 
     def catalog_root(self) -> str:
-        h = hashlib.sha256(b"SYNERGIA:DEDUP:CATALOG:V1")
+        h = hashlib.sha256(b"SYNERGIA:DEDUP:CATALOG:V2")
         for (domain, chunk_id), size in sorted(self._chunk_sizes.items()):
             h.update(domain.encode())
             h.update(b"\x00")
