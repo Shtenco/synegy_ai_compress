@@ -1,0 +1,26 @@
+name: Fusion V4 exact benchmark
+
+on:
+  push:
+    branches: [fusion-v4-experiment]
+  workflow_dispatch:
+
+jobs:
+  benchmark:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install codecs
+        run: python -m pip install --upgrade pip brotli zstandard
+      - name: Run Fusion V4 shared walk-forward
+        run: python compression_lab/benchmark_fusion_v4_shared.py . -o fusion_v4_shared.json
+      - name: Upload exact report
+        uses: actions/upload-artifact@v4
+        with:
+          name: FUSION_V4_SHARED_EXACT
+          path: fusion_v4_shared.json
