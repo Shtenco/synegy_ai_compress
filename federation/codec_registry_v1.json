@@ -1,0 +1,48 @@
+{
+  "schema": "synergy.codec-registry/v1",
+  "owner": "Shtenco/ai_compress",
+  "authority": "archive_codec_profiles_only",
+  "semantic_authority": "NONE",
+  "profiles": [
+    {"id": "EGD-256", "family": "SHTENCO", "status": "RND", "lossless_required": true},
+    {"id": "SABF-X", "family": "SHTENCO", "status": "RND", "lossless_required": true},
+    {"id": "HACE-X", "family": "SHTENCO", "status": "RND", "lossless_required": true},
+    {"id": "TSC-X", "family": "SHTENCO", "status": "RND", "lossless_required": true},
+    {"id": "AMCE-100X", "family": "SHTENCO", "status": "RND", "lossless_required": true},
+    {"id": "UMC-256", "family": "SHTENCO", "status": "SNAPSHOT_REQUIRED", "lossless_required": true},
+    {"id": "Graph-AI-Compression-V5.2", "family": "GRAPH", "status": "RND", "lossless_required": true},
+    {"id": "GRAAL-IGC", "family": "GRAPH", "status": "RND", "lossless_required": true},
+    {"id": "GabrielHorn-SGH1", "family": "GABRIEL_HORN", "status": "ACTIVE_RND", "lossless_required": true, "capabilities": ["deduplication", "random_access", "multiscale_lifting", "significance_shells", "surface_aware_mdl"]},
+    {"id": "Arithmetic", "family": "BASELINE", "status": "BASELINE", "lossless_required": true},
+    {"id": "rANS", "family": "BASELINE", "status": "BASELINE", "lossless_required": true},
+    {"id": "Huffman", "family": "BASELINE", "status": "BASELINE", "lossless_required": true},
+    {"id": "Graph-Delta", "family": "GRAPH", "status": "RND", "lossless_required": true}
+  ],
+  "promotion_requirements": [
+    "named corpus",
+    "exact byte equality after round-trip",
+    "SHA-256 verification",
+    "actual archive byte size",
+    "encode throughput",
+    "decode throughput",
+    "peak RSS or equivalent memory metric",
+    "matched baseline",
+    "license/supply-chain metadata",
+    "resource-abuse test before production eligibility"
+  ],
+  "consumers": [
+    "Shtenco/synergynet",
+    "Shtenco/synergy_meta_os",
+    "Shtenco/midas_ai",
+    "Shtenco/agi_nexus",
+    "Shtenco/nexus_science_agent",
+    "Shtenco/synergy_financial_os",
+    "Shtenco/synergy_pay_system",
+    "Shtenco/blochain_budget",
+    "Shtenco/synergy_ai_blockchain",
+    "Shtenco/synergy_metachain",
+    "Shtenco/synergychain",
+    "Shtenco/synergy_app",
+    "Shtenco/motherboard_xpu_xml"
+  ]
+}
