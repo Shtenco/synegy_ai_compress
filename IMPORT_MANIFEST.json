@@ -1,0 +1,3 @@
+{
+  "schema":"synergy.import_manifest/v1","import_id":"synergy-723-2026-09","repository":"Shtenco/ai_compress","mapped_artifact_count":29,"direct_payload_artifact_count":14,"external_evidence_pending_count":15,"payload_sha256":"f5b4d9813f92c00be3f157782d9f3ef5d09eae8fb8d150c6c78b1895e3ae61cf","payload_state":"PAYLOAD_PENDING_CONNECTOR_LIMIT","target_branch":"migration/synergy-723-2026-09","quarantine_excluded":[".env","dao_robots_keys.json","withdraw_pw.py"],"generated_excluded":["SINERGY_BOT_MINIMAL.cpython-312.pyc"],"promotion_rule":"Archive/provenance payloads remain immutable evidence; compression identity does not confer economic authority."
+}
