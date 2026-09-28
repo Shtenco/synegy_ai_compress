@@ -1,0 +1,28 @@
+name: Federation Data Fabric adapter
+
+on:
+  push:
+    paths:
+      - 'federation/**'
+      - 'tests/test_federation_archive_adapter.py'
+      - '.github/workflows/federation-data-fabric.yml'
+  pull_request:
+    paths:
+      - 'federation/**'
+      - 'tests/test_federation_archive_adapter.py'
+      - '.github/workflows/federation-data-fabric.yml'
+
+jobs:
+  federation-adapter:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Validate codec registry
+        run: python -m json.tool federation/codec_registry_v1.json >/dev/null
+      - name: Compile adapter
+        run: python -m compileall -q federation
+      - name: Run federation archive tests
+        run: python -m unittest -v tests.test_federation_archive_adapter
