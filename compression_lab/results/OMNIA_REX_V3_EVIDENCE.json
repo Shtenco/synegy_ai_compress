@@ -1,0 +1,81 @@
+{
+  "schema": "omnia-rex-v3-evidence",
+  "router_external_frozen": {
+    "files": 10,
+    "blocks": 13,
+    "oracle_total_bytes": 19219,
+    "hierarchical_total_bytes": 19220,
+    "byte_regret_percent": 0.005203184348823164,
+    "exact_oracle_blocks": 12,
+    "exact_oracle_rate": 0.9230769230769231,
+    "family_search_reduction_percent": 87.5,
+    "measured_exhaustive_encode_seconds": 3.5679792619998807,
+    "measured_hierarchical_encode_seconds": 0.07969457200033503,
+    "measured_speedup": 44.77066847143468,
+    "wallclock_reduction_percent": 97.76639475321205,
+    "note": "Frozen hierarchy was not changed after seeing this 10-file/13-block suite."
+  },
+  "qtd3_fresh_git_history": {
+    "protocol_note": "Real sequential README.md versions from repository history. Training snapshot timestamp strictly precedes unseen target. Reproduced QTD3 core strategies external-LZ/FastCDC/lines/lineage and raw/zlib/bz2/lzma/brotli/rANS/zstd entropy backends. Optional Gabriel backend was unavailable in the local cross-repo runtime; because Brotli won both measured cases, these container sizes are conservative upper bounds for the full optional-backend portfolio.",
+    "cases": [
+      {
+        "name": "readme-gabriel",
+        "source_bytes": 2787,
+        "model_bytes": 1004,
+        "container_bytes": 593,
+        "direct_brotli11_bytes": 1282,
+        "coverage_percent": 66.1643344097596,
+        "strategy": "temporal-external-lz",
+        "payload_codec": "brotli-11",
+        "cold_total_bytes": 1597,
+        "break_even_reuses_vs_brotli": 2,
+        "exact_roundtrip": true,
+        "reuse_frontier": {
+          "1": {"effective_bytes": 1597.0, "reduction_vs_direct_brotli_percent": -24.570982839313583},
+          "2": {"effective_bytes": 1095.0, "reduction_vs_direct_brotli_percent": 14.586583463338531},
+          "5": {"effective_bytes": 793.8, "reduction_vs_direct_brotli_percent": 38.081123244929806},
+          "10": {"effective_bytes": 693.4, "reduction_vs_direct_brotli_percent": 45.91263650546023},
+          "100": {"effective_bytes": 603.04, "reduction_vs_direct_brotli_percent": 52.9609984399376}
+        }
+      },
+      {
+        "name": "readme-math",
+        "source_bytes": 3745,
+        "model_bytes": 1351,
+        "container_bytes": 571,
+        "direct_brotli11_bytes": 1581,
+        "coverage_percent": 79.65287049399198,
+        "strategy": "temporal-external-lz",
+        "payload_codec": "brotli-11",
+        "cold_total_bytes": 1922,
+        "break_even_reuses_vs_brotli": 2,
+        "exact_roundtrip": true,
+        "reuse_frontier": {
+          "1": {"effective_bytes": 1922.0, "reduction_vs_direct_brotli_percent": -21.568627450980383},
+          "2": {"effective_bytes": 1246.5, "reduction_vs_direct_brotli_percent": 21.157495256166982},
+          "5": {"effective_bytes": 841.2, "reduction_vs_direct_brotli_percent": 46.793168880455404},
+          "10": {"effective_bytes": 706.1, "reduction_vs_direct_brotli_percent": 55.33839342188488},
+          "100": {"effective_bytes": 584.51, "reduction_vs_direct_brotli_percent": 63.02909550917142}
+        }
+      }
+    ]
+  },
+  "mathematical_examples": {
+    "spatial_128x128": {
+      "source_bytes": 16384,
+      "prediction_errors": 599,
+      "error_fraction": 0.03656005859375,
+      "measured_complete_archive_bytes": 81,
+      "measured_ratio": 202.2716049382716,
+      "generic_arbitrary_error_enumerative_bound_bytes": 1061.2832001458744,
+      "interpretation": "Measured residual is much smaller than the generic arbitrary-error bound because error positions and correction values have additional structure."
+    },
+    "spatial_8192_low_error_block": {
+      "source_bytes": 8192,
+      "prediction_errors": 25,
+      "error_fraction": 0.0030517578125,
+      "measured_complete_candidate_bytes": 36,
+      "generic_arbitrary_error_enumerative_bound_bytes": 55.14055456171194
+    }
+  }
+}
