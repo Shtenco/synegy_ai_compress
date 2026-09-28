@@ -1,0 +1,24 @@
+name: Private snapshot submodule probe
+
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout with historical snapshot
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: Verify historical benchmark source
+        run: |
+          git submodule status
+          test -f source_snapshot/compression_lab/benchmark_all_systems_exact.py
+          python --version
+          echo SNAPSHOT_OK

@@ -8,6 +8,7 @@
 - UMC-256 и MDL-маршрутизация;
 - Graph-AI Compression V5.2 и GRAAL-IGC;
 - **Gabriel Horn Codec (`SGH1`)**: многомасштабный lifting, significance-shells, дедупликация, random access и surface-aware MDL;
+- **Math Portfolio v3 (`SMX3`)**: BytePoly, XOR/transpose, WholeINT, signed P2HF и опциональный обратимый EC-MATH;
 - BIP39, Arithmetic, rANS, Huffman, Graph Delta;
 - Tier-1 движки и Matrix web-приложение;
 - воспроизводимые benchmark, round-trip и SHA-256 тесты.
@@ -26,6 +27,23 @@ fragment = engine.decompress_range(archive, 1000, 5000)
 ```
 
 Математика, формат контейнера и ограничения описаны в `compression_lab/README_GABRIEL_HORN.md`.
+
+## Math Portfolio v3
+
+```python
+from compression_lab.shtenco_math_portfolio_v3 import ShtencoOmniaMathV3
+
+engine = ShtencoOmniaMathV3(profile="max")
+archive = engine.compress(source)
+assert engine.decompress(archive) == source
+print(engine.last_mode)
+```
+
+Новый слой сравнивает существующую OMNIA v2.1 с проверенным математическим
+экспертом. Специализированные модели допускаются только после полного обратного
+декодирования и SHA-256; RAW и зрелые энтропийные маршруты остаются обязательным
+fallback. Архитектура и контролируемый benchmark описаны в
+`compression_lab/README_MATH_PORTFOLIO_V3.md`.
 
 ## Точный корпусный benchmark
 
