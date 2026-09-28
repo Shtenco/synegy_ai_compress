@@ -1,0 +1,33 @@
+{
+  "schema": "omnia-rex-v2-evidence-summary",
+  "development_router": {
+    "oracle_total_bytes": 60020,
+    "blocks": 44,
+    "top1_byte_regret_pct": 10.288237254248589,
+    "top2_byte_regret_pct": 0.35988003998668194,
+    "top2_candidate_family_reduction_pct": 75.0
+  },
+  "external_heldout_router": {
+    "blocks": 11,
+    "oracle_total_bytes": 33130,
+    "router_total_bytes": 33211,
+    "byte_regret_pct": 0.24449139752489302,
+    "oracle_exact_hit_rate": 0.8181818181818182,
+    "avg_families_evaluated": 2.1818181818181817,
+    "family_search_reduction_pct": 72.72727272727273,
+    "max_block_regret_pct": 103.2258064516129
+  },
+  "ablation": {
+    "brotli11": {"geomean_ratio": 32.49245783058104, "relative_delta_pct": -13.467090282331784},
+    "spatial_residual": {"geomean_ratio": 33.317679825195285, "relative_delta_pct": -11.269384564613494},
+    "bwt_mtf_rank": {"geomean_ratio": 36.071904227372244, "relative_delta_pct": -3.9344192388612864},
+    "ppm_anti_exp": {"geomean_ratio": 37.54924910833867, "relative_delta_pct": 0.0}
+  },
+  "winner_counts": {
+    "brotli11": 5,
+    "spatial_residual": 4,
+    "bwt_mtf_rank": 1,
+    "raw": 1
+  },
+  "qtd3_status": "ACCOUNTING_IMPLEMENTED_FRESH_V2_RUN_OPEN"
+}
