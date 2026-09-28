@@ -12,14 +12,14 @@ try:
         OmniaREXV1,
         R_RAW, R_BROTLI, R_BWT, R_SP_SPARSE, R_SP_BROTLI,
         _pack, _with_params, _sp_params, _spatial_residual, _sparse_encode,
-        _widths, bwt, zopfli_zlib,
+        _widths, bwt,
     )
 except ImportError:
     from omnia_rex_v1 import (
         OmniaREXV1,
         R_RAW, R_BROTLI, R_BWT, R_SP_SPARSE, R_SP_BROTLI,
         _pack, _with_params, _sp_params, _spatial_residual, _sparse_encode,
-        _widths, bwt, zopfli_zlib,
+        _widths, bwt,
     )
 
 
@@ -138,12 +138,7 @@ class OmniaREXV3Fast:
                 else:
                     sparse = _sparse_encode(residual)
                     z0 = zlib.compress(sparse, 9)
-                    zp = (
-                        zopfli_zlib.compress(sparse, numiterations=15)
-                        if zopfli_zlib is not None and len(sparse) < max(1024, len(source) // 4)
-                        else z0
-                    )
-                    out.append(_pack(R_SP_SPARSE, source, _with_params(params, zp)))
+                    out.append(_pack(R_SP_SPARSE, source, _with_params(params, z0)))
         return out
 
     def compress(self, source: bytes) -> bytes:
