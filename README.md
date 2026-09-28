@@ -84,3 +84,32 @@ flowchart LR
 `GREEN` присваивается только воспроизводимым утверждениям. Исследовательский код, диаграмма или заявленная метрика без проверяемого artifact trail остаются `R&D/CANDIDATE`.
 
 <!-- SYNERGY-FEDERATION-PASSPORT:END -->
+
+---
+
+# 🗜️ Глубокий доказательный паспорт AI Compress
+
+## Реальный benchmark/evidence слой
+
+Проект уже имеет CI для Gabriel corpus, unified Tier-1 и real-12B probes, методологии, exact benchmark runners и round-trip tests.
+
+```mermaid
+flowchart LR
+    DATA[Corpus] --> ROUTER[MDL / engine selection]
+    ROUTER --> ENC[Lossless encode]
+    ENC --> DEC[Decode]
+    DEC --> EQ[Byte equality + SHA256]
+    EQ --> MET[Ratio / throughput / RSS / random access]
+```
+
+## Главный evidence invariant
+
+Compression claim принимается только после exact round-trip. Большой ratio без byte equality не является результатом.
+
+## Особая граница 12B experiments
+
+NEXUS DWE/RVQ real-12B evidence относится к конкретному storage/compression experiment и не должно автоматически трактоваться как lossless compression всей интеллектуальной способности модели.
+
+## Следующий рубеж
+
+frozen multi-corpus suite → external codec baselines → CPU/RAM/random-access cost → reproducible environment manifest → independent rerun.
