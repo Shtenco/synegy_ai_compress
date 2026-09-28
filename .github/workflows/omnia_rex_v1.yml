@@ -1,0 +1,41 @@
+name: OMNIA-REX V1 exact benchmark
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - "compression_lab/omnia_rex_*.py"
+      - "compression_lab/benchmark_omnia_rex_v1.py"
+      - "compression_lab/test_omnia_rex_v1.py"
+      - "compression_lab/shtenco_math_portfolio_v3.py"
+      - "compression_lab/shtenco_tier1_v2.py"
+      - "compression_lab/shtenco_tier1_v21.py"
+      - ".github/workflows/omnia_rex_v1.yml"
+
+jobs:
+  exact:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install benchmark dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install pytest brotli zstandard mnemonic
+      - name: Unit tests
+        working-directory: compression_lab
+        run: python -m pytest -q test_omnia_rex_v1.py test_math_portfolio_v3.py test_tier1_v2.py
+      - name: Frozen 11x32KiB exact benchmark
+        working-directory: compression_lab
+        run: python benchmark_omnia_rex_v1.py --size 32768 --output output_omnia_rex_v1
+      - uses: actions/upload-artifact@v4
+        with:
+          name: omnia-rex-v1-evidence
+          path: |
+            compression_lab/output_omnia_rex_v1/omnia_rex_v1.json
+            compression_lab/output_omnia_rex_v1/omnia_rex_v1_rows.csv
