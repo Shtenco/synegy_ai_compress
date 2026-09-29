@@ -1,115 +1,328 @@
-# SHTENCO AI Compress
+# 🗜️ SYNERGY AI Compress — verified compression research dossier
 
-Единый репозиторий технологий архивации и lossless-сжатия SHTENCO.
+> **Статус:** 🔬 R&D / CANDIDATE evidence platform.
+> **Проверено по фактическому `main`, benchmark evidence, tests и federation contract:** 29.09.2026.
+> **Сильная сторона:** repository сохраняет не только положительные результаты, но и формальные falsification verdicts.
 
-## Состав
+## 1. 🎯 Задача
 
-- EGD-256, SABF-X, HACE-X, TSC-X, AMCE-100X;
-- UMC-256 и MDL-маршрутизация;
-- Graph-AI Compression V5.2 и GRAAL-IGC;
-- **Gabriel Horn Codec (`SGH1`)**: многомасштабный lifting, significance-shells, дедупликация, random access и surface-aware MDL;
-- BIP39, Arithmetic, rANS, Huffman, Graph Delta;
-- Tier-1 движки и Matrix web-приложение;
-- воспроизводимые benchmark, round-trip и SHA-256 тесты.
+`synegy_ai_compress` исследует сверхсильное сжатие моделей/структурированных данных, но с жёсткой границей:
 
-Активные файлы хранятся в `compression_lab/`, CI — в `.github/workflows/`.
-
-## Gabriel Horn
-
-```python
-from compression_lab.gabriel_horn_engine import GabrielHornEngine
-
-engine = GabrielHornEngine(profile="max")
-archive = engine.compress(source)
-assert engine.decompress(archive) == source
-fragment = engine.decompress_range(archive, 1000, 5000)
+```text
+small representation != useful model
+compression ratio     != preserved inference quality
+archive produced      != lossless unless exact round-trip passes
+benchmark claim       != general capability
 ```
 
-Математика, формат контейнера и ограничения описаны в `compression_lab/README_GABRIEL_HORN.md`.
+Главная инженерная цель — искать representations, которые одновременно проходят storage, reconstruction и downstream quality gates.
 
-## Точный корпусный benchmark
+## 2. 📦 Фактический состав
 
-```bash
-python compression_lab/benchmark_gabriel_corpus.py \
-  --size 16384 \
-  --repeats 3 \
-  --warmups 1 \
-  --engines raw,gabriel-max,zstd-19,brotli-11,graal-igc \
-  --output compression_lab/output_gabriel_corpus
+```text
+synegy_ai_compress/
+├── benchmarks/
+│   ├── NEXUS_DWE_REAL_12B_EVIDENCE.md
+│   └── NEXUS_RVQ_REAL_12B_EVIDENCE.md
+├── compression_lab/
+│   ├── benchmark_*.py
+│   ├── gabriel_horn_engine.py
+│   ├── nexus_dwe_real_12b.py
+│   ├── nexus_omega_store_probe.py
+│   ├── shtenco_tier1_*.py
+│   ├── synergy_contracts.py
+│   ├── tests...
+│   └── results/
+├── docs/
+├── .github/workflows/
+├── MATERIALIZE_COMPRESSION_SNAPSHOT.sh
+├── MIGRATION_MANIFEST.md
+└── source_snapshot
 ```
 
-Benchmark измеряет фактический размер архива, encode/decode throughput, peak RSS,
-стоимость случайного доступа и access amplification. Каждое измерение выполняется
-в новом процессе и принимается только после byte equality и SHA-256.
+Это полноценный experiment/evidence repository, не README-only shell.
 
-Исторический `UMC-256` добавляется только при наличии его точного snapshot-модуля;
-другие UMC-движки не подставляются под это имя. Полная методология описана в
-`compression_lab/GABRIEL_CORPUS_METHODOLOGY.md`.
+## 3. 🔗 Federation contract: exact archive identity
 
-`source_snapshot` — неизменяемый Git-snapshot commit `c681ec94fe5194156b71fc304035f7aaff4d2327` из прежнего репозитория. В нём сохранены все исторические compression-файлы, тесты и поколения V3/V4/V5.2/Tier-1. После клонирования с доступом к приватному `Shtenco/agi_olga` выполните:
+`compression_lab/synergy_contracts.py`:
 
-```bash
-git submodule update --init source_snapshot
+```text
+CONTRACT_ID = synergy.archive.evidence/v1
+AUTHORITY   = compression_identity
 ```
 
-Проект графового ИИ нового поколения, включая версию из статьи, проходившую AGI-бенчмарки, хранится отдельно в `Shtenco/agi_olga`.
+`archive_evidence_payload` требует:
 
+[
+restored == source
+]
 
-<!-- SYNERGY-FEDERATION-PASSPORT:START -->
----
+иначе сразу `ValueError`.
 
-## 🧭 SYNERGY federation passport
+Для successful lossless evidence сохраняются:
 
-**Домен:** 🗜️ Compression / archival substrate  
-**Архитектурный родитель:** [`synergy_meta_os`](https://github.com/Shtenco/synergy_meta_os)  
-**Архитектурный корень:** [`synergy_system`](https://github.com/Shtenco/synergy_system)
+- source SHA-256;
+- archive SHA-256;
+- codec id;
+- original bytes;
+- archive bytes;
+- `round_trip_verified=true`;
+- benchmark id;
+- random-access capability flag.
+
+## 4. 🛡️ Lossless invariant
+
+Каноническое условие:
+
+[
+D(C(X)) = X
+]
+
+byte-for-byte, плюс:
+
+[
+SHA256(D(C(X))) = SHA256(X)
+]
+
+Это сильнее проверки «файл открылся» или semantic similarity.
+
+## 5. 🧪 Exact benchmark methodology
+
+`BENCHMARK_ALL_SYSTEMS_METHODOLOGY.md` фиксирует:
+
+- discovery всех unique engines;
+- 11 deterministic datasets по seed `20260730`;
+- 32,768-byte datasets;
+- GitHub Actions Ubuntu 24.04;
+- Python 3.11;
+- pinned requirements;
+- `PYTHONHASHSEED=0`;
+- warm-up;
+- 3 timed reps;
+- `perf_counter_ns`;
+- GC controlled during timing;
+- medians + min/max;
+- exact decompression correctness for every repetition.
+
+Rankings разделены по метрикам; repository прямо не называет один engine «универсально лучшим».
+
+## 6. 📊 Real 12B DWE falsification
+
+Evidence file pins:
+
+```text
+Model: mistralai/Mistral-Nemo-Base-2407
+Revision: 2045759120154383da48ee84ce4bf2f90cc6ec1f
+BF16 checkpoint bytes: 24,495,564,800
+```
+
+Whole-row DWE hypothesis давала экстремальные structural ratios вплоть до сотен/тысяч ×, но real-weight quality разрушалась.
+
+Representative corrected 2-bit results имели:
+
+- low row cosine;
+- very high NMSE on several tensors;
+- large random-activation relative L2 error.
+
+Verdict сохранён явно:
+
+**FALSIFIED as a whole-row 16–128 prototype compressor.**
+
+Это хороший scientific behavior: маленький representation size не был выдан за breakthrough после failed quality gate.
+
+## 7. 🚨 Literal 2-bit quantizer bug
+
+Evidence фиксирует конкретный bug: signed centroid value затем clamp'ился в `[0,3]`, уничтожая negative components.
+
+Это отдельный lesson:
+
+```text
+bit width claim != valid quantizer
+```
+
+Numeric encoding должен проверяться на sign/range semantics, а не только packed size.
+
+## 8. 🧪 Block PQ / Residual VQ follow-up
+
+Следующий real-weight experiment tested block PQ/RVQ.
+
+Structural examples:
+
+- PQ8×1 ~1.50 bpw;
+- PQ16×1 ~0.75 bpw;
+- RVQ16×2 ~1.50 bpw;
+- RVQ32×2 ~0.75 bpw;
+- RVQ64×2 ~0.38 bpw.
+
+Это существенно реалистичнее whole-row DWE geometry.
+
+Но quality verdict остаётся осторожным:
+
+> geometry works better, quality still insufficient in 0.38–1.50 bpw region.
+
+## 9. 📉 Entropy-coding falsification
+
+Index entropy для K=256 observed примерно 7.9–8.0 bits.
+
+Поэтому hypothesis, что Huffman снимет 30–50% index bytes, **не подтверждена**.
+
+Observed secondary lossless gains были modest — примерно 1.05×–1.22× в этом experiment.
+
+Вывод: primary numeric representation важнее optimistic entropy wrapper.
+
+## 10. 🏗️ Архитектура research pipeline
 
 ```mermaid
 flowchart LR
-    SYS[🧭 synergy_system] --> P[synergy_meta_os]
-    P --> THIS[synegy_ai_compress]
-    THIS --> E[📦 Evidence / outputs]
+    SRC[Real / deterministic source] --> REP[Primary representation]
+    REP --> PACK[Packed archive]
+    PACK --> DEC[Decoder]
+    DEC --> EQ{Exact / quality gate}
+    EQ -->|lossless| HASH[SHA evidence]
+    EQ -->|lossy model| ACT[Activation / tensor quality]
+    ACT --> FULL[Full-model PPL/accuracy]
+    HASH --> BENCH[Benchmark registry]
+    FULL --> BENCH
+    BENCH --> VERDICT[Promote / Falsify]
 ```
 
-Эта диаграмма фиксирует место в документационной федерации. Реальная code/runtime dependency должна подтверждаться отдельными артефактами.
+## 11. 📥 Inputs / 📤 Outputs
 
-### Навигация
+Inputs include:
 
-- [📚 Атлас всех 75 репозиториев](https://github.com/Shtenco/synergy_system/blob/main/docs/SYNERGY_REPOSITORY_ATLAS.md)
-- [🧾 Машиночитаемый registry](https://github.com/Shtenco/synergy_system/blob/main/registry/SYNERGY_REPOSITORIES.json)
-- [🧭 SYNERGY SYSTEM](https://github.com/Shtenco/synergy_system)
+- byte corpora;
+- model weight tensors;
+- pinned model revision;
+- codec configuration;
+- calibration data for future activation-aware methods.
 
-### Evidence rule
+Outputs:
 
-`GREEN` присваивается только воспроизводимым утверждениям. Исследовательский код, диаграмма или заявленная метрика без проверяемого artifact trail остаются `R&D/CANDIDATE`.
+- compressed archives;
+- restored bytes;
+- ratios/bpw;
+- encode/decode timings;
+- tensor distortion;
+- activation relative error;
+- machine-readable benchmark results;
+- explicit verdict.
 
-<!-- SYNERGY-FEDERATION-PASSPORT:END -->
+## 12. 🛡️ Claim boundaries
+
+```text
+projected representation size != actual full-model artifact
+tensor cosine                 != perplexity
+random activation error       != downstream benchmark
+PPL preservation              != task accuracy
+compression ratio             != speedup
+lossless wrapper gain         != primary quantization gain
+sample evidence               != universal model-family result
+```
+
+## 13. ⚠️ Remaining quality gates
+
+Before a lossy LLM compressor is promoted:
+
+1. activation-aware calibration;
+2. exact full model materialization;
+3. perplexity;
+4. downstream accuracy;
+5. multiple model families;
+6. CPU/GPU memory;
+7. tokens/s;
+8. decode/runtime overhead;
+9. reproducible packing;
+10. compare against strong baselines at same bpw.
+
+## 14. 🧪 Existing test/evidence surface
+
+Repository contains dedicated tests for:
+
+- Gabriel/Horn engine;
+- exact corpus benchmark;
+- Omega store probe;
+- Tier1 engines;
+- Tier1 V2;
+- federation contract.
+
+README does not turn source test files into observed-green CI unless actual run evidence is checked.
+
+## 15. 🛠️ Reproducibility
+
+The repository contains explicit benchmark scripts and pinned methodology rather than one opaque notebook.
+
+A valid run should preserve:
+
+```text
+source/model revision
+dependency versions
+seed
+codec config
+archive hash
+restored hash
+timings
+quality metrics
+verdict
+```
+
+For model experiments, external checkpoint access and compute are additional prerequisites.
+
+## 16. 🗺️ Repository map
+
+| Area | Role |
+|---|---|
+| `compression_lab/` | engines, benchmark runners, tests |
+| `benchmarks/` | curated real-model evidence |
+| `compression_lab/results/` | raw/derived results |
+| `synergy_contracts.py` | archive identity contract |
+| `docs/` | legacy/provenance |
+| `.github/workflows/` | CI/experiments |
+| `MIGRATION_MANIFEST.md` | snapshot/migration provenance |
+
+## 17. 🔗 Место в SYNERGY
+
+Producer of archive/compression evidence for:
+
+- `synergy_meta_os`;
+- `synergy_net`;
+- model/runtime repositories.
+
+Compression authority is limited to representation/archive identity and benchmark evidence; it does not get model-quality authority without downstream tests.
+
+## 18. 📊 Evidence maturity
+
+| Layer | Status |
+|---|---|
+| lossless round-trip contract | ✅ |
+| deterministic benchmark methodology | ✅ |
+| real 12B sample evidence | ✅ |
+| negative/falsification evidence | ✅ |
+| whole-row DWE | ❌ FALSIFIED |
+| naive PQ/RVQ geometry | 🟡 better, insufficient quality |
+| full-model PPL at target bpw | ❌ |
+| end-to-end runtime speed | ❌ |
+| universal SOTA claim | ❌ |
+
+## 19. 🚀 Roadmap
+
+1. activation-aware distortion;
+2. additive/residual codebooks under fixed bit budget;
+3. outlier residuals;
+4. full-model materialization;
+5. PPL/accuracy;
+6. strong baseline parity;
+7. runtime kernels;
+8. memory/tokens-s benchmark;
+9. observed federation archive evidence.
+
+## 20. 🛑 Что project НЕ утверждает
+
+- that 100×–2000× structural arithmetic preserves an LLM;
+- that DWE passed — it was falsified;
+- that Huffman saves 30–50% here — it did not;
+- that sub-1bpw model is usable without full-model validation;
+- that compression automatically accelerates inference.
 
 ---
 
-# 🗜️ Глубокий доказательный паспорт AI Compress
-
-## Реальный benchmark/evidence слой
-
-Проект уже имеет CI для Gabriel corpus, unified Tier-1 и real-12B probes, методологии, exact benchmark runners и round-trip tests.
-
-```mermaid
-flowchart LR
-    DATA[Corpus] --> ROUTER[MDL / engine selection]
-    ROUTER --> ENC[Lossless encode]
-    ENC --> DEC[Decode]
-    DEC --> EQ[Byte equality + SHA256]
-    EQ --> MET[Ratio / throughput / RSS / random access]
-```
-
-## Главный evidence invariant
-
-Compression claim принимается только после exact round-trip. Большой ratio без byte equality не является результатом.
-
-## Особая граница 12B experiments
-
-NEXUS DWE/RVQ real-12B evidence относится к конкретному storage/compression experiment и не должно автоматически трактоваться как lossless compression всей интеллектуальной способности модели.
-
-## Следующий рубеж
-
-frozen multi-corpus suite → external codec baselines → CPU/RAM/random-access cost → reproducible environment manifest → independent rerun.
+[🧭 SYNERGY SYSTEM](https://github.com/Shtenco/synergy_system) · [📚 Atlas](https://github.com/Shtenco/synergy_system/blob/main/docs/SYNERGY_REPOSITORY_ATLAS.md)
