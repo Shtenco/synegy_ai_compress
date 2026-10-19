@@ -1,0 +1,6 @@
+engine,archive_bytes,total_input_bytes,savings_pct,median_encode_mib_s,median_decode_mib_s,source
+Brotli-11,33728,139762,75.867546,1.2060919,269.8339,compression_lab/results/gabriel_umc_exact_20260730/README.md
+Gabriel-Horn MAX,35372,139762,74.691261,0.0101633,496.5634,compression_lab/results/gabriel_umc_exact_20260730/README.md
+UMC-256 MAX,35983,139762,74.254089,0.0586331,239.1484,compression_lab/results/gabriel_umc_exact_20260730/README.md
+GRAAL-IGC MAX,36483,139762,73.896338,8.30676,846.9753,compression_lab/results/gabriel_umc_exact_20260730/README.md
+Zstd-19,36813,139762,73.660222,4.15473,439.3038,compression_lab/results/gabriel_umc_exact_20260730/README.md
