@@ -4,6 +4,7 @@ on:
     branches: [main]
     paths:
       - 'compression_lab/benchmark_80plus_20261020.py'
+      - 'compression_lab/benchmark_real_datacenter_20261020.py'
       - 'compression_lab/merge_80plus_20261020.py'
       - '.github/workflows/benchmark_80plus_20261020.yml'
   workflow_dispatch:
@@ -45,6 +46,12 @@ jobs:
         else
           python compression_lab/merge_80plus_20261020.py --world compression_lab/output_80plus_20261020/fresh_world_38_summary.csv --out compression_lab/output_80plus_20261020
         fi
+    - name: Real captured infrastructure logs — native SHTENCO versus world codecs
+      timeout-minutes: 120
+      continue-on-error: true
+      run: |
+        python compression_lab/benchmark_real_datacenter_20261020.py
+
     - name: Archive 80+ registry, every world data point, environment and executable source
       if: always()
       uses: actions/upload-artifact@v4
@@ -53,6 +60,7 @@ jobs:
         path: |
           compression_lab/output_80plus_20261020/
           compression_lab/output_unified_20261020/
+          compression_lab/real_datacenter_20261020/
           compression_lab/benchmark_80plus_20261020.py
           compression_lab/merge_80plus_20261020.py
           compression_lab/frozen_tier1_summary.py
