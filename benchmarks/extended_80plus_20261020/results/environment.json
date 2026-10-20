@@ -1,0 +1,31 @@
+{
+  "schema_version": "1.0",
+  "date_utc": "2026-10-20T08:42:25Z",
+  "seed": 20260730,
+  "corpus_count": 11,
+  "bytes_per_dataset": 32768,
+  "profiles": 38,
+  "round_trip_rows": 418,
+  "attempted_rows": 418,
+  "python": "3.13.5",
+  "machine": "x86_64",
+  "system": "Linux",
+  "library_versions": {
+    "brotli": "1.2.0",
+    "blosc2": "4.3.3"
+  },
+  "scope_note": "Fresh STANDARD codec profiles ONLY; historical SHTENCO engine records are separate and must not be mixed as freshly run.",
+  "data_sha256": {
+    "source_code": "e9a83f568f217808f86a5d1742afcd8ee42da5e8bb31c8b8240ee33d3ee664d7",
+    "json_graph_logs": "a977f6c42991045205bf07f0e2619c976e6ccc3867f79b317c9307148f6c4caf",
+    "telemetry_csv": "1e42e5e388fe9a6d47eb5040216d1fefdbac496b98e1243f9f3de1f53772f973",
+    "repeated_text": "7704a666faea5f9f28d5696eade6090c26bfb269057b3f95f538d765b4fd2fdc",
+    "version_snapshots": "33e8c831a1e248f633d195d5c2d10ef939c38e2e0d6fa65c895caff63c73fe7f",
+    "sparse_weights": "579e7f2cb5a2b9c5c3546c5aa8f2d379c26ad5b45ee1ef5375661546cc27092b",
+    "structured_binary": "ca63132b625d47320f5d385fb1517d31ea73098d92ce56250e01f3e036486f12",
+    "image_like": "dbc6cc010f41f2351242af4438b723defa38d7fe05acfaeaa19fb829db03c063",
+    "bip39_text": "bb91c6629963c6365a5a374882c19fdc55440a68fc6a710117608bfbe82a4fb4",
+    "mixed": "265b8284dad2d9dba357622549f3b3dd46f53177c7dbda1d082330bdc5190cdc",
+    "random": "83fe01136199c1d5e2be474ec7a5a33e989b0ea1868892dd0c3c5c12984a93bc"
+  }
+}

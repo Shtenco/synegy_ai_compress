@@ -1,0 +1,55 @@
+name: SYNERGY 80+ Compression Benchmark Evidence
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'compression_lab/benchmark_80plus_20261020.py'
+      - 'compression_lab/merge_80plus_20261020.py'
+      - '.github/workflows/benchmark_80plus_20261020.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  run-80plus:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 240
+    steps:
+    - name: Checkout source
+      uses: actions/checkout@v4
+    - name: Python 3.11
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+    - name: Install exact benchmark requirements
+      run: |
+        python -m pip install --upgrade pip
+        python -m pip install -r compression_lab/requirements_v4.txt
+        python -m pip install blosc2 lz4
+        sudo apt-get update && sudo apt-get install -y zstd
+    - name: Fresh global baseline profiles on exact frozen corpus
+      run: |
+        python compression_lab/benchmark_80plus_20261020.py --out compression_lab/output_80plus_20261020 --repeats 2
+    - name: Re-run all currently executable native Tier-1 engines (distinct from frozen historical profiles)
+      continue-on-error: true
+      run: |
+        python compression_lab/benchmark_unified_tier1.py --size 32768 --repeats 2 --output compression_lab/output_unified_20261020
+    - name: Register frozen, freshly re-executed native profiles, and new world baselines
+      run: |
+        if test -f compression_lab/output_unified_20261020/all_systems_report.json; then
+          python compression_lab/merge_80plus_20261020.py --world compression_lab/output_80plus_20261020/fresh_world_38_summary.csv --current compression_lab/output_unified_20261020/all_systems_report.json --out compression_lab/output_80plus_20261020
+        else
+          python compression_lab/merge_80plus_20261020.py --world compression_lab/output_80plus_20261020/fresh_world_38_summary.csv --out compression_lab/output_80plus_20261020
+        fi
+    - name: Archive 80+ registry, every world data point, environment and executable source
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: SYNERGY_BENCHMARK_80PLUS_20261020
+        path: |
+          compression_lab/output_80plus_20261020/
+          compression_lab/output_unified_20261020/
+          compression_lab/benchmark_80plus_20261020.py
+          compression_lab/merge_80plus_20261020.py
+          compression_lab/frozen_tier1_summary.py
+          compression_lab/historical_tier1_corpus.py
+        retention-days: 60
