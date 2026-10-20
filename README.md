@@ -17,7 +17,7 @@
 |:---:|:---:|:---:|:---:|
 | Сводный реестр, включая мировые кодеки и RAW | Исполнение из архива Unified Tier-1 V2 | Сохранённые результаты исходного набора | Детерминированный корпус по 32768 байт |
 
-**Сжатие измерено вместе со временем:** исходный архив содержит `all_systems_rows.csv`, `all_systems_summary.csv`, `environment.json`; второй — `current_systems_rows.csv`, `combined_systems_summary.csv`, `SOURCE_COMMITS.txt`. Метрики приводятся с происхождением, а source-run и current не становятся сопоставимым свежим speed-test от их объединения.
+**Сжатие измерено вместе со временем:** исходный архив содержит `all_systems_rows.csv`, `all_systems_summary.csv`, `environment.json`; второй — `current_systems_rows.csv`, `combined_systems_summary.csv`, `SOURCE_COMMITS.txt`. Метрики приводятся с происхождением, а набор A и current не становятся сопоставимым свежим speed-test от их объединения.
 
 ## Основные технологии
 
@@ -33,7 +33,7 @@
 
 ## SHTENCO vs WORLD — полный проверяемый реестр 76 профилей
 
-**Строки ниже — фактическая сводка из присланного архива Unified Tier-1 V2**, отсортированная по геометрическому среднему коэффициенту. `current` относится к 14 текущим профилям архива, `source-run` — к 62 архивным записям. Каждый показатель времени — суммарное время обработки 11 файлов, миллисекунды, **из исходного CSV**. Тестовый корпус структурирован и сгенерирован детерминированно, он **не является** выборкой реальных корпоративных данных.
+**Строки ниже — фактическая сводка из присланного архива Unified Tier-1 V2**, отсортированная по геометрическому среднему коэффициенту. `current` относится к 14 профилям Unified V2, `набор A` — к 62 записям исходного набора. Каждый показатель времени — суммарное время обработки 11 файлов, миллисекунды, **из исходного CSV**. Тестовый корпус структурирован и сгенерирован детерминированно, он **не является** выборкой реальных корпоративных данных.
 
 | № | Профиль | Источник | Сжатие × | Encode ms | Decode ms |
 |---:|---|---|---:|---:|---:|
@@ -43,78 +43,78 @@
 | 4 | SHTENCO GABRIEL-HORN TIER1 BALANCED | current | 24.459 | 30241 | 39 |
 | 5 | SHTENCO GRAAL-IGC TIER1 MAX | current | 22.634 | 57 | 6 |
 | 6 | SHTENCO TSC-X TIER1 SPATIAL | current | 22.115 | 32 | 5 |
-| 7 | SHTENCO SABF-X ULTIMATE GRAPH-AI | source-run | 21.921 | 11143 | 6 |
-| 8 | SHTENCO TSC-X TURBOSPATIAL GRAPH-AI | source-run | 21.907 | 1166 | 10 |
-| 9 | SHTENCO HACE-X CASCADE GRAPH-AI | source-run | 21.022 | 1965 | 9 |
+| 7 | SHTENCO SABF-X ULTIMATE GRAPH-AI | набор A | 21.921 | 11143 | 6 |
+| 8 | SHTENCO TSC-X TURBOSPATIAL GRAPH-AI | набор A | 21.907 | 1166 | 10 |
+| 9 | SHTENCO HACE-X CASCADE GRAPH-AI | набор A | 21.022 | 1965 | 9 |
 | 10 | SHTENCO NEXUS-UMC TIER1 | current | 19.675 | 22 | 4 |
 | 11 | SHTENCO OMNIA TIER1 V2 SPEED | current | 19.403 | 51 | 2 |
-| 12 | SHTENCO DDR-X GRAPH | source-run | 19.214 | 658 | 2 |
+| 12 | SHTENCO DDR-X GRAPH | набор A | 19.214 | 658 | 2 |
 | 13 | SHTENCO GRAAL-AIS TIER1 | current | 19.207 | 20 | 6 |
-| 14 | SHTENCO CDC-RX GRAPH | source-run | 19.027 | 677 | 2 |
-| 15 | SHTENCO UMC-256 MAX | source-run | 18.876 | 20494 | 6 |
-| 16 | SHTENCO AMCE-100X GRAPH-AI | source-run | 18.787 | 2127 | 2 |
-| 17 | SHTENCO SABF-X ULTIMATE | source-run | 18.720 | 5985 | 9 |
-| 18 | SABF-X + ZSTD | source-run | 18.642 | 296 | 7 |
-| 19 | SHTENCO RSX RECURSIVE SPATIAL GRAPH-AI | source-run | 18.593 | 1149 | 6 |
-| 20 | SHTENCO ODC-XP GRAPH | source-run | 18.508 | 684 | 2 |
-| 21 | SHTENCO DMB-39X GRAPH | source-run | 18.478 | 683 | 2 |
-| 22 | SHTENCO SECB-39X GRAPH | source-run | 18.448 | 686 | 2 |
-| 23 | HYBRID AI COMPRESSION ENGINE | source-run | 18.308 | 4617 | 7 |
-| 24 | SHTENCO PECB-39X GRAPH | source-run | 18.262 | 709 | 2 |
-| 25 | SHTENCO UMC-256 BALANCED | source-run | 18.189 | 6066 | 4 |
-| 26 | SHTENCO ODC-XC GRAPH | source-run | 17.887 | 721 | 2 |
-| 27 | SHTENCO BPD-39X GRAPH | source-run | 17.860 | 720 | 2 |
-| 28 | SHTENCO UECB-39X GRAPH | source-run | 17.833 | 718 | 2 |
-| 29 | SHTENCO ECBC-39 GRAPH | source-run | 17.465 | 825 | 3 |
-| 30 | SHTENCO EGD-256 MAX GRAPH-AI | source-run | 17.280 | 2087 | 3 |
-| 31 | SHTENCO GRAAL-AIS STORAGE GRAPH-AI | source-run | 17.194 | 1358 | 5 |
-| 32 | SHTENCO FAS-256 ATOM STORE GRAPH-AI | source-run | 17.161 | 8864 | 673 |
-| 33 | SHTENCO GRAAL-IGC V5.2 | source-run | 17.103 | 827 | 3 |
+| 14 | SHTENCO CDC-RX GRAPH | набор A | 19.027 | 677 | 2 |
+| 15 | SHTENCO UMC-256 MAX | набор A | 18.876 | 20494 | 6 |
+| 16 | SHTENCO AMCE-100X GRAPH-AI | набор A | 18.787 | 2127 | 2 |
+| 17 | SHTENCO SABF-X ULTIMATE | набор A | 18.720 | 5985 | 9 |
+| 18 | SABF-X + ZSTD | набор A | 18.642 | 296 | 7 |
+| 19 | SHTENCO RSX RECURSIVE SPATIAL GRAPH-AI | набор A | 18.593 | 1149 | 6 |
+| 20 | SHTENCO ODC-XP GRAPH | набор A | 18.508 | 684 | 2 |
+| 21 | SHTENCO DMB-39X GRAPH | набор A | 18.478 | 683 | 2 |
+| 22 | SHTENCO SECB-39X GRAPH | набор A | 18.448 | 686 | 2 |
+| 23 | HYBRID AI COMPRESSION ENGINE | набор A | 18.308 | 4617 | 7 |
+| 24 | SHTENCO PECB-39X GRAPH | набор A | 18.262 | 709 | 2 |
+| 25 | SHTENCO UMC-256 BALANCED | набор A | 18.189 | 6066 | 4 |
+| 26 | SHTENCO ODC-XC GRAPH | набор A | 17.887 | 721 | 2 |
+| 27 | SHTENCO BPD-39X GRAPH | набор A | 17.860 | 720 | 2 |
+| 28 | SHTENCO UECB-39X GRAPH | набор A | 17.833 | 718 | 2 |
+| 29 | SHTENCO ECBC-39 GRAPH | набор A | 17.465 | 825 | 3 |
+| 30 | SHTENCO EGD-256 MAX GRAPH-AI | набор A | 17.280 | 2087 | 3 |
+| 31 | SHTENCO GRAAL-AIS STORAGE GRAPH-AI | набор A | 17.194 | 1358 | 5 |
+| 32 | SHTENCO FAS-256 ATOM STORE GRAPH-AI | набор A | 17.161 | 8864 | 673 |
+| 33 | SHTENCO GRAAL-IGC V5.2 | набор A | 17.103 | 827 | 3 |
 | 34 | SHTENCO SABF-X TIER1 BALANCED | current | 17.094 | 9 | 0.47 |
-| 35 | SHTENCO PBM-39X GRAPH | source-run | 16.973 | 976 | 3 |
-| 36 | SHTENCO MICA-39 GRAPH | source-run | 16.973 | 978 | 3 |
-| 37 | SABF-X + ZSTD + LZMA9 | source-run | 16.963 | 272 | 8 |
-| 38 | SABF-X + LZMA9 | source-run | 16.868 | 254 | 9 |
-| 39 | SHTENCO BLOCK_FAST X GRAPH-AI | source-run | 16.760 | 1225 | 3 |
+| 35 | SHTENCO PBM-39X GRAPH | набор A | 16.973 | 976 | 3 |
+| 36 | SHTENCO MICA-39 GRAPH | набор A | 16.973 | 978 | 3 |
+| 37 | SABF-X + ZSTD + LZMA9 | набор A | 16.963 | 272 | 8 |
+| 38 | SABF-X + LZMA9 | набор A | 16.868 | 254 | 9 |
+| 39 | SHTENCO BLOCK_FAST X GRAPH-AI | набор A | 16.760 | 1225 | 3 |
 | 40 | SHTENCO SABF-X TIER1 SPEED | current | 16.501 | 1.64 | 0.47 |
 | 41 | SHTENCO PBM-39X TIER1 | current | 16.501 | 2.52 | 0.47 |
-| 42 | SHTENCO HACE-X CASCADE | source-run | 16.416 | 584 | 20 |
-| 43 | SHTENCO AMCE-100X | source-run | 16.337 | 707 | 4 |
-| 44 | SHTENCO BAPM-X GRAPH | source-run | 16.055 | 1083 | 3 |
-| 45 | BROTLI-11 | source-run | 15.477 | 315 | 1.39 |
-| 46 | SHTENCO SABF-X NEURAL SELECTOR | source-run | 15.234 | 334 | 7 |
-| 47 | SHTENCO TSC-X TURBOSPATIAL | source-run | 14.444 | 201 | 26 |
-| 48 | ZSTD-22 | source-run | 14.070 | 156 | 0.87 |
-| 49 | LZMA9 | source-run | 13.966 | 101 | 4 |
-| 50 | SHTENCO UMC-256 FAST | source-run | 13.773 | 758 | 1 |
-| 51 | ZSTD-3 | source-run | 12.854 | 1.47 | 0.77 |
+| 42 | SHTENCO HACE-X CASCADE | набор A | 16.416 | 584 | 20 |
+| 43 | SHTENCO AMCE-100X | набор A | 16.337 | 707 | 4 |
+| 44 | SHTENCO BAPM-X GRAPH | набор A | 16.055 | 1083 | 3 |
+| 45 | BROTLI-11 | набор A | 15.477 | 315 | 1.39 |
+| 46 | SHTENCO SABF-X NEURAL SELECTOR | набор A | 15.234 | 334 | 7 |
+| 47 | SHTENCO TSC-X TURBOSPATIAL | набор A | 14.444 | 201 | 26 |
+| 48 | ZSTD-22 | набор A | 14.070 | 156 | 0.87 |
+| 49 | LZMA9 | набор A | 13.966 | 101 | 4 |
+| 50 | SHTENCO UMC-256 FAST | набор A | 13.773 | 758 | 1 |
+| 51 | ZSTD-3 | набор A | 12.854 | 1.47 | 0.77 |
 | 52 | SHTENCO GABRIEL-HORN TIER1 SPEED | current | 12.445 | 1325 | 39 |
-| 53 | SHTENCO SABF-X FAST | source-run | 11.727 | 234 | 7 |
-| 54 | SHTENCO EGD-256 MAX | source-run | 11.473 | 627 | 5 |
-| 55 | BZIP2-9 | source-run | 11.072 | 39 | 8 |
-| 56 | GZIP-9 | source-run | 10.938 | 16 | 1 |
-| 57 | EGD256 + BROTLI | source-run | 10.684 | 387 | 9 |
-| 58 | SHTENCO GRAAL-AIS STORAGE | source-run | 10.560 | 175 | 10 |
+| 53 | SHTENCO SABF-X FAST | набор A | 11.727 | 234 | 7 |
+| 54 | SHTENCO EGD-256 MAX | набор A | 11.473 | 627 | 5 |
+| 55 | BZIP2-9 | набор A | 11.072 | 39 | 8 |
+| 56 | GZIP-9 | набор A | 10.938 | 16 | 1 |
+| 57 | EGD256 + BROTLI | набор A | 10.684 | 387 | 9 |
+| 58 | SHTENCO GRAAL-AIS STORAGE | набор A | 10.560 | 175 | 10 |
 | 59 | SHTENCO GABRIEL-HORN TIER1 RANDOM-ACCESS | current | 10.210 | 40732 | 38 |
-| 60 | GRAPH DELTA ENCODING | source-run | 10.080 | 89 | 31 |
-| 61 | SHTENCO RSX RECURSIVE SPATIAL | source-run | 9.943 | 178 | 14 |
-| 62 | EGD256 + LZMA | source-run | 9.888 | 119 | 13 |
-| 63 | SHTENCO BLOCK_FAST X | source-run | 9.858 | 89 | 4 |
-| 64 | SHTENCO EGD-256 BIP39 GRAPH | source-run | 9.807 | 184 | 13 |
-| 65 | EGD256 + ZSTD | source-run | 9.525 | 75 | 8 |
-| 66 | SHTENCO EGD-256 RECURSIVE GRAPH | source-run | 8.768 | 225 | 33 |
-| 67 | rANS + DICTIONARY | source-run | 2.941 | 83 | 67 |
-| 68 | SHTENCO FAS-256 ATOM STORE | source-run | 2.936 | 4027 | 4027 |
-| 69 | INTEGER RANGE CODING | source-run | 2.612 | 5604 | 5724 |
-| 70 | ADAPTIVE ARITHMETIC CODING | source-run | 1.929 | 6270 | 6388 |
-| 71 | ARITHMETIC CODING | source-run | 1.866 | 5824 | 5917 |
-| 72 | BIP39 + ARITHMETIC | source-run | 1.863 | 5784 | 5857 |
-| 73 | rANS CODING | source-run | 1.853 | 101 | 85 |
-| 74 | CANONICAL HUFFMAN | source-run | 1.683 | 334 | 449 |
-| 75 | ADAPTIVE HUFFMAN | source-run | 1.679 | 332 | 446 |
-| 76 | RAW STORE (reference) | source-run | 1.000 | 0.01 | 0.01 |
+| 60 | GRAPH DELTA ENCODING | набор A | 10.080 | 89 | 31 |
+| 61 | SHTENCO RSX RECURSIVE SPATIAL | набор A | 9.943 | 178 | 14 |
+| 62 | EGD256 + LZMA | набор A | 9.888 | 119 | 13 |
+| 63 | SHTENCO BLOCK_FAST X | набор A | 9.858 | 89 | 4 |
+| 64 | SHTENCO EGD-256 BIP39 GRAPH | набор A | 9.807 | 184 | 13 |
+| 65 | EGD256 + ZSTD | набор A | 9.525 | 75 | 8 |
+| 66 | SHTENCO EGD-256 RECURSIVE GRAPH | набор A | 8.768 | 225 | 33 |
+| 67 | rANS + DICTIONARY | набор A | 2.941 | 83 | 67 |
+| 68 | SHTENCO FAS-256 ATOM STORE | набор A | 2.936 | 4027 | 4027 |
+| 69 | INTEGER RANGE CODING | набор A | 2.612 | 5604 | 5724 |
+| 70 | ADAPTIVE ARITHMETIC CODING | набор A | 1.929 | 6270 | 6388 |
+| 71 | ARITHMETIC CODING | набор A | 1.866 | 5824 | 5917 |
+| 72 | BIP39 + ARITHMETIC | набор A | 1.863 | 5784 | 5857 |
+| 73 | rANS CODING | набор A | 1.853 | 101 | 85 |
+| 74 | CANONICAL HUFFMAN | набор A | 1.683 | 334 | 449 |
+| 75 | ADAPTIVE HUFFMAN | набор A | 1.679 | 332 | 446 |
+| 76 | RAW STORE (reference) | набор A | 1.000 | 0.01 | 0.01 |
 
-**Все 76 записей имеют exact 11/11 в сводном файле архива**, но `source-run` — ранее сохранённые измерения. Рейтинг размера не означает превосходство по CPU; изменение среды и протокола исключает точное сравнение скорости разных runs как одного запуска.
+**Все 76 записей имеют exact 11/11 в сводном файле архива**, но `набор A` — ранее сохранённые измерения. Рейтинг размера не означает превосходство по CPU; изменение среды и протокола исключает точное сравнение скорости разных runs как одного запуска.
 
 ## Международное сравнение — профиль за профилем
 
@@ -125,12 +125,12 @@
 | SHTENCO GRAAL-IGC MAX | SHTENCO current | 22.634 | 57 мс |
 | SHTENCO SABF-X Speed | SHTENCO current | 16.501 | 1.64 мс |
 | SHTENCO PBM-39X | SHTENCO current | 16.501 | 2.52 мс |
-| Brotli-11 | World source-run | 15.477 | 314.85 мс |
-| Zstd-22 | World source-run | 14.070 | 156.25 мс |
-| LZMA9 | World source-run | 13.966 | 100.82 мс |
-| Zstd-3 | World source-run | 12.854 | 1.47 мс |
-| bzip2-9 | World source-run | 11.072 | 38.50 мс |
-| gzip-9 | World source-run | 10.938 | 16.12 мс |
+| Brotli-11 | World набор A | 15.477 | 314.85 мс |
+| Zstd-22 | World набор A | 14.070 | 156.25 мс |
+| LZMA9 | World набор A | 13.966 | 100.82 мс |
+| Zstd-3 | World набор A | 12.854 | 1.47 мс |
+| bzip2-9 | World набор A | 11.072 | 38.50 мс |
+| gzip-9 | World набор A | 10.938 | 16.12 мс |
 
 **Осторожно с интерпретацией:** это сравнительный исходный реестр, а не независимый промышленный тест. Задача свежего прогона на больших настоящих файлах остаётся отдельной.
 
@@ -143,7 +143,7 @@ SAEI(V) = original_bytes / (archive_bytes + V * (encode_seconds + decode_seconds
 V = 10 MiB/s — пример стоимости CPU в эквивалентных байтах
 ```
 
-Для точного расчёта SAEI по всему корпусу требуется **суммировать исходные байты, архивные байты и времена по индивидуальным строкам**. В этих ZIP есть подробные строки старого и нового прогона, поэтому единый рейтинг SAEI необходимо рассчитывать раздельно по протоколу `source-run/current`; подстановка `geomean_ratio` в формулу недопустима.
+Для точного расчёта SAEI по всему корпусу требуется **суммировать исходные байты, архивные байты и времена по индивидуальным строкам**. В этих ZIP есть подробные строки старого и нового прогона, поэтому единый рейтинг SAEI необходимо рассчитывать раздельно по протоколу `набор A/current`; подстановка `geomean_ratio` в формулу недопустима.
 
 | Режим оптимизации | Главная цель | Кому подходит |
 |---|---|---|
