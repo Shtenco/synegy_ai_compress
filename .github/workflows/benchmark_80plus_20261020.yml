@@ -26,6 +26,11 @@ jobs:
         python -m pip install -r compression_lab/requirements_v4.txt
         python -m pip install blosc2 lz4
         sudo apt-get update && sudo apt-get install -y zstd
+    - name: Identify execution and source revision
+      run: |
+        echo "BENCHMARK_RUN_SHA=$GITHUB_SHA"
+        echo "BENCHMARK_RUN_ID=$GITHUB_RUN_ID"
+        git rev-parse HEAD
     - name: Fresh global baseline profiles on exact frozen corpus
       run: |
         python compression_lab/benchmark_80plus_20261020.py --out compression_lab/output_80plus_20261020 --repeats 2
