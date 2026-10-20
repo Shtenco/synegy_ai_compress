@@ -1,0 +1,41 @@
+name: SHTENCO vs WORLD - Real Infrastructure Logs
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'compression_lab/benchmark_real_datacenter_20261020.py'
+      - '.github/workflows/shtenco_vs_world_real_logs.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  benchmark:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install original SHTENCO dependencies plus baseline codecs
+        run: |
+          python -m pip install -r compression_lab/requirements_v4.txt
+          python -m pip install lz4
+      - name: Native SHTENCO vs world on original Loghub data (no synthetic files)
+        run: |
+          python compression_lab/benchmark_real_datacenter_20261020.py
+      - name: Publish benchmark summary
+        if: always()
+        run: |
+          if [ -f compression_lab/real_datacenter_20261020/README.md ]; then
+            cat compression_lab/real_datacenter_20261020/README.md >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "Benchmark failed to produce verified results. No claims made." >> "$GITHUB_STEP_SUMMARY"
+          fi
+      - name: Archive original measured rows and source manifest
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: shtenco-vs-world-real-logs
+          path: compression_lab/real_datacenter_20261020/
+          retention-days: 90
