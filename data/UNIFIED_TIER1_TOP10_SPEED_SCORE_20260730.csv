@@ -1,0 +1,11 @@
+rank,engine,geometric_mean_ratio_x,published_score,total_encode_ms_11datasets,source
+1,SABF-X SPEED,16.500986,118.317876,1.642,compression_lab/results/UNIFIED_TIER1_V2_20260730.md
+2,PBM-39X,16.500986,96.452109,2.517,compression_lab/results/UNIFIED_TIER1_V2_20260730.md
+3,SABF-X Balanced,17.093538,20.359616,9.286,compression_lab/results/UNIFIED_TIER1_V2_20260730.md
+4,GRAAL-AIS,19.206956,14.675943,19.796,compression_lab/results/UNIFIED_TIER1_V2_20260730.md
+5,NEXUS-UMC,19.674641,12.31896,22.29,compression_lab/results/UNIFIED_TIER1_V2_20260730.md
+6,TSC-X Spatial,22.114639,7.863649,31.763,compression_lab/results/UNIFIED_TIER1_V2_20260730.md
+7,OMNIA SPEED,19.403181,4.621028,50.985,compression_lab/results/UNIFIED_TIER1_V2_20260730.md
+8,GRAAL-IGC MAX,22.633934,4.429738,57.206,compression_lab/results/UNIFIED_TIER1_V2_20260730.md
+9,OMNIA Balanced,27.23504,0.285008,9837.787,compression_lab/results/UNIFIED_TIER1_V2_20260730.md
+10,Gabriel SPEED,12.445315,0.105844,1325.464,compression_lab/results/UNIFIED_TIER1_V2_20260730.md

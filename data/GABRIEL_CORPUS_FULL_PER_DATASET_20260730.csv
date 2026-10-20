@@ -1,0 +1,12 @@
+dataset,source_bytes,brotli11_bytes,gabriel_max_bytes,umc256_max_bytes,graal_igc_max_bytes,zstd19_bytes,raw_bytes
+egd256_web_app_v3.py,32768,6837,7724,7141,7831,7385,32768
+english_text,8192,607,753,910,728,682,8192
+gabriel_horn_engine.py,26395,5808,6561,6113,6663,6289,26395
+json_records,8192,599,853,902,795,675,8192
+numeric_smooth_i32,8192,4245,2907,3895,3921,5486,8192
+seeded_random,8192,8196,8258,8250,8233,8206,8192
+shtenco_tier1_engines.py,11441,2968,3347,3272,3356,3248,11441
+source_code,8192,286,426,589,379,316,8192
+sparse_binary,8192,464,508,760,503,466,8192
+umc256_engine.py,11814,3347,3794,3651,3842,3702,11814
+versioned_blocks,8192,371,241,500,232,358,8192
