@@ -8,6 +8,106 @@
 
 <p align="center"><img src="assets/readme/family-v2.svg" width="100%" alt="SHTENCO compression technology portfolio" /></p>
 
+
+## Полная таблица 81/81 систем — восстановленный исторический реестр
+
+**Источник:** восстановленный артефакт GitHub Actions, запуск 23.10.2026; frozen baseline commit c681ec94fe5194156b71fc304035f7aaff4d2327; schema shtenco-unified-tier1-v2-federated; SHA-256 исходного frozen artifact: bb769fa6c1b65d697e66d79ac3275b1715ee0c77186669377e783734fcc47296.
+
+**Как читать:** таблица объединяет 69 замороженных исторических профилей (frozen-20260730) и текущие профили из восстановленного прогона. PASS/total — точные восстановления на 11 наборах, а не число побед над другими архиваторами. Для frozen профилей ранги взяты из сохранённой сводки; у current-профилей ранги «—», потому что смешивать ранжирование разных протоколов измерения нельзя. Текущий прогон содержит 209/209 PASS строк измерений для 19 систем; это не означает 81 свежий независимый прогон. Размер каждого тестового набора — 32 768 байт, 3 повтора для текущих измерений. Коэффициент — исходный размер / размер архива; время — геометрическое среднее по наборам, мс.
+
+| # | System | Family | Dataset PASS/total | Geomean ratio | Encode ms (geo mean) | Decode ms (geo mean) | Score rank | Ratio rank | Speed rank | Measurement |
+|---:|---|---|---:|---:|---:|---:|---:|---:|---:|---|
+| 1 | RAW STORE (reference) | REFERENCE | 11/11 | 1× | 0.0006836 | 0.0005698 | 1 | 69 | 1 | frozen-20260730 |
+| 2 | ZSTD-3 | COMPRESSION-LAB | 11/11 | 12.85× | 0.1211 | 0.06835 | 3 | 46 | 2 | frozen-20260730 |
+| 3 | GZIP-9 | COMPRESSION-LAB | 11/11 | 10.94× | 0.7156 | 0.1038 | 6 | 50 | 6 | frozen-20260730 |
+| 4 | ZSTD-22 | COMPRESSION-LAB | 11/11 | 14.07× | 3.646 | 0.07655 | 11 | 43 | 19 | frozen-20260730 |
+| 5 | BROTLI-11 | COMPRESSION-LAB | 11/11 | 15.48× | 14.95 | 0.1143 | 17 | 40 | 29 | frozen-20260730 |
+| 6 | LZMA9 | COMPRESSION-LAB | 11/11 | 13.97× | 8.798 | 0.2992 | 14 | 44 | 16 | frozen-20260730 |
+| 7 | BZIP2-9 | COMPRESSION-LAB | 11/11 | 11.07× | 3.037 | 0.5497 | 12 | 49 | 10 | frozen-20260730 |
+| 8 | SHTENCO BLOCK_FAST X | COMPRESSION-LAB | 11/11 | 9.858× | 8.085 | 0.1943 | 16 | 56 | 15 | frozen-20260730 |
+| 9 | SABF-X + ZSTD | COMPRESSION-LAB | 11/11 | 18.64× | 22 | 0.276 | 20 | 13 | 28 | frozen-20260730 |
+| 10 | SHTENCO DDR-X GRAPH | SHTENCO-GRAPH-RESEARCH-V5.2 | 11/11 | 19.21× | 51.73 | 0.1621 | 32 | 7 | 36 | frozen-20260730 |
+| 11 | SHTENCO CDC-RX GRAPH | SHTENCO-GRAPH-RESEARCH-V5.2 | 11/11 | 19.03× | 53.22 | 0.1635 | 33 | 9 | 37 | frozen-20260730 |
+| 12 | SHTENCO DMB-39X GRAPH | SHTENCO-GRAPH-RESEARCH-V5.2 | 11/11 | 18.48× | 54.4 | 0.1758 | 35 | 16 | 38 | frozen-20260730 |
+| 13 | SHTENCO SECB-39X GRAPH | SHTENCO-GRAPH-RESEARCH-V5.2 | 11/11 | 18.45× | 54.5 | 0.1752 | 36 | 17 | 40 | frozen-20260730 |
+| 14 | SHTENCO PECB-39X GRAPH | SHTENCO-GRAPH-RESEARCH-V5.2 | 11/11 | 18.26× | 54.41 | 0.173 | 37 | 19 | 42 | frozen-20260730 |
+| 15 | SHTENCO ODC-XP GRAPH | SHTENCO-GRAPH-RESEARCH-V5.2 | 11/11 | 18.51× | 54.4 | 0.1799 | 34 | 15 | 39 | frozen-20260730 |
+| 16 | SHTENCO UMC-256 FAST | SHTENCO-UMC | 11/11 | 13.77× | 57.25 | 0.09949 | 47 | 45 | 46 | frozen-20260730 |
+| 17 | SHTENCO BPD-39X GRAPH | SHTENCO-GRAPH-RESEARCH-V5.2 | 11/11 | 17.86× | 55.56 | 0.1739 | 38 | 22 | 44 | frozen-20260730 |
+| 18 | SHTENCO ODC-XC GRAPH | SHTENCO-GRAPH-RESEARCH-V5.2 | 11/11 | 17.89× | 55.78 | 0.1739 | 40 | 21 | 45 | frozen-20260730 |
+| 19 | SHTENCO UECB-39X GRAPH | SHTENCO-GRAPH-RESEARCH-V5.2 | 11/11 | 17.83× | 55.56 | 0.176 | 39 | 23 | 43 | frozen-20260730 |
+| 20 | SABF-X + ZSTD + LZMA9 | COMPRESSION-LAB | 11/11 | 16.96× | 24.15 | 0.4247 | 23 | 32 | 27 | frozen-20260730 |
+| 21 | SHTENCO ECBC-39 GRAPH | SHTENCO-GRAPH-RESEARCH-V5.2 | 11/11 | 17.47× | 59.62 | 0.1836 | 43 | 24 | 47 | frozen-20260730 |
+| 22 | SHTENCO SABF-X NEURAL SELECTOR | COMPRESSION-LAB | 11/11 | 15.23× | 30.18 | 0.2808 | 28 | 41 | 32 | frozen-20260730 |
+| 23 | SHTENCO GRAAL-IGC V5.2 | SHTENCO-GRAPH-V5.2 | 11/11 | 17.1× | 59.77 | 0.1842 | 44 | 28 | 48 | frozen-20260730 |
+| 24 | EGD256 + ZSTD | COMPRESSION-LAB | 11/11 | 9.525× | 5.089 | 0.6827 | 13 | 58 | 12 | frozen-20260730 |
+| 25 | SHTENCO PBM-39X GRAPH | SHTENCO-GRAPH-RESEARCH-V5.2 | 11/11 | 16.97× | 68.21 | 0.1906 | 45 | 31 | 49 | frozen-20260730 |
+| 26 | SHTENCO MICA-39 GRAPH | SHTENCO-GRAPH-RESEARCH-V5.2 | 11/11 | 16.97× | 68.43 | 0.1912 | 46 | 30 | 50 | frozen-20260730 |
+| 27 | SABF-X + LZMA9 | COMPRESSION-LAB | 11/11 | 16.87× | 22.8 | 0.629 | 21 | 33 | 26 | frozen-20260730 |
+| 28 | SHTENCO AMCE-100X | COMPRESSION-LAB | 11/11 | 16.34× | 53.07 | 0.2567 | 41 | 38 | 41 | frozen-20260730 |
+| 29 | SHTENCO SABF-X FAST | COMPRESSION-LAB | 11/11 | 11.73× | 21.16 | 0.3358 | 27 | 47 | 25 | frozen-20260730 |
+| 30 | SHTENCO BLOCK_FAST X GRAPH-AI | SHTENCO-GRAPH-V5.2 | 11/11 | 16.76× | 83.17 | 0.1766 | 52 | 34 | 54 | frozen-20260730 |
+| 31 | SHTENCO RSX RECURSIVE SPATIAL GRAPH-AI | SHTENCO-GRAPH-V5.2 | 11/11 | 18.59× | 88.25 | 0.2443 | 49 | 14 | 52 | frozen-20260730 |
+| 32 | SHTENCO AMCE-100X GRAPH-AI | SHTENCO-GRAPH-V5.2 | 11/11 | 18.79× | 166.4 | 0.153 | 55 | 11 | 58 | frozen-20260730 |
+| 33 | SHTENCO BAPM-X GRAPH | SHTENCO-GRAPH-RESEARCH-V5.2 | 11/11 | 16.05× | 77.93 | 0.2396 | 50 | 39 | 51 | frozen-20260730 |
+| 34 | SHTENCO TSC-X TURBOSPATIAL GRAPH-AI | SHTENCO-GRAPH-V5.2 | 11/11 | 21.91× | 91.11 | 0.4158 | 48 | 4 | 53 | frozen-20260730 |
+| 35 | SHTENCO GRAAL-AIS STORAGE GRAPH-AI | SHTENCO-GRAPH-V5.2 | 11/11 | 17.19× | 95.72 | 0.246 | 53 | 26 | 55 | frozen-20260730 |
+| 36 | SHTENCO GRAAL-AIS STORAGE | COMPRESSION-LAB | 11/11 | 10.56× | 14.34 | 0.7364 | 22 | 52 | 20 | frozen-20260730 |
+| 37 | SHTENCO EGD-256 MAX GRAPH-AI | SHTENCO-GRAPH-V5.2 | 11/11 | 17.28× | 157.1 | 0.2105 | 56 | 25 | 57 | frozen-20260730 |
+| 38 | EGD256 + LZMA | COMPRESSION-LAB | 11/11 | 9.888× | 10.29 | 1.08 | 18 | 55 | 18 | frozen-20260730 |
+| 39 | SHTENCO HACE-X CASCADE GRAPH-AI | SHTENCO-GRAPH-V5.2 | 11/11 | 21.02× | 137.5 | 0.3766 | 54 | 5 | 56 | frozen-20260730 |
+| 40 | EGD256 + BROTLI | COMPRESSION-LAB | 11/11 | 10.68× | 18.11 | 0.7526 | 26 | 51 | 33 | frozen-20260730 |
+| 41 | SHTENCO EGD-256 MAX | COMPRESSION-LAB | 11/11 | 11.47× | 38.72 | 0.4835 | 42 | 48 | 35 | frozen-20260730 |
+| 42 | SHTENCO UMC-256 BALANCED | SHTENCO-UMC | 11/11 | 18.19× | 250.5 | 0.2092 | 57 | 20 | 65 | frozen-20260730 |
+| 43 | SHTENCO RSX RECURSIVE SPATIAL | COMPRESSION-LAB | 11/11 | 9.943× | 15.03 | 1.096 | 24 | 54 | 21 | frozen-20260730 |
+| 44 | SHTENCO EGD-256 BIP39 GRAPH | COMPRESSION-LAB | 11/11 | 9.807× | 15.62 | 1.058 | 25 | 57 | 22 | frozen-20260730 |
+| 45 | SHTENCO TSC-X TURBOSPATIAL | COMPRESSION-LAB | 11/11 | 14.44× | 16.8 | 2.398 | 19 | 42 | 23 | frozen-20260730 |
+| 46 | GRAPH DELTA ENCODING | COMPRESSION-LAB | 11/11 | 10.08× | 7.945 | 2.848 | 15 | 53 | 14 | frozen-20260730 |
+| 47 | SHTENCO HACE-X CASCADE | COMPRESSION-LAB | 11/11 | 16.42× | 41.01 | 1.723 | 31 | 37 | 34 | frozen-20260730 |
+| 48 | HYBRID AI COMPRESSION ENGINE | COMPRESSION-LAB | 11/11 | 18.31× | 354 | 0.3295 | 60 | 18 | 60 | frozen-20260730 |
+| 49 | SHTENCO SABF-X ULTIMATE GRAPH-AI | SHTENCO-GRAPH-V5.2 | 11/11 | 21.92× | 942.4 | 0.2621 | 63 | 3 | 68 | frozen-20260730 |
+| 50 | SHTENCO SABF-X ULTIMATE | COMPRESSION-LAB | 11/11 | 18.72× | 480.6 | 0.4909 | 61 | 12 | 64 | frozen-20260730 |
+| 51 | SHTENCO EGD-256 RECURSIVE GRAPH | COMPRESSION-LAB | 11/11 | 8.768× | 18.95 | 2.875 | 29 | 59 | 24 | frozen-20260730 |
+| 52 | SHTENCO FAS-256 ATOM STORE GRAPH-AI | SHTENCO-GRAPH-V5.2 | 11/11 | 17.16× | 626.6 | 0.3963 | 62 | 27 | 67 | frozen-20260730 |
+| 53 | SHTENCO UMC-256 MAX | SHTENCO-UMC | 11/11 | 18.88× | 1643 | 0.2694 | 64 | 10 | 69 | frozen-20260730 |
+| 54 | rANS + DICTIONARY | COMPRESSION-LAB | 11/11 | 2.941× | 6.539 | 5.006 | 30 | 60 | 13 | frozen-20260730 |
+| 55 | rANS CODING | COMPRESSION-LAB | 11/11 | 1.853× | 9.163 | 7.648 | 51 | 66 | 17 | frozen-20260730 |
+| 56 | ADAPTIVE HUFFMAN | COMPRESSION-LAB | 11/11 | 1.679× | 28.44 | 37.71 | 58 | 68 | 30 | frozen-20260730 |
+| 57 | CANONICAL HUFFMAN | COMPRESSION-LAB | 11/11 | 1.683× | 28.72 | 37.75 | 59 | 67 | 31 | frozen-20260730 |
+| 58 | SHTENCO FAS-256 ATOM STORE | COMPRESSION-LAB | 11/11 | 2.936× | 285.9 | 285.4 | 65 | 61 | 59 | frozen-20260730 |
+| 59 | INTEGER RANGE CODING | COMPRESSION-LAB | 11/11 | 2.612× | 508 | 519.1 | 66 | 62 | 61 | frozen-20260730 |
+| 60 | BIP39 + ARITHMETIC | COMPRESSION-LAB | 11/11 | 1.863× | 523.8 | 531 | 67 | 65 | 62 | frozen-20260730 |
+| 61 | ARITHMETIC CODING | COMPRESSION-LAB | 11/11 | 1.866× | 527.9 | 536.6 | 68 | 64 | 63 | frozen-20260730 |
+| 62 | ADAPTIVE ARITHMETIC CODING | COMPRESSION-LAB | 11/11 | 1.929× | 568.6 | 579.6 | 69 | 63 | 66 | frozen-20260730 |
+| 63 | SHTENCO GABRIEL-HORN TIER1 BALANCED | SHTENCO-GABRIEL | 11/11 | 24.46× | 2635 | 0.3523 | — | — | — | current |
+| 64 | SHTENCO GABRIEL-HORN TIER1 MAX | SHTENCO-GABRIEL | 11/11 | 24.76× | 6891 | 0.3531 | — | — | — | current |
+| 65 | SHTENCO GABRIEL-HORN TIER1 RANDOM-ACCESS | SHTENCO-GABRIEL | 11/11 | 10.21× | 3602 | 0.4957 | — | — | — | current |
+| 66 | SHTENCO GABRIEL-HORN TIER1 SPEED | SHTENCO-GABRIEL | 11/11 | 12.45× | 113.5 | 0.3373 | — | — | — | current |
+| 67 | SHTENCO GRAAL-AIS TIER1 | SHTENCO-TIER1 | 11/11 | 19.21× | 1.311 | 0.1198 | — | — | — | current |
+| 68 | SHTENCO GRAAL-IGC TIER1 MAX | SHTENCO-TIER1 | 11/11 | 22.63× | 4.858 | 0.1167 | — | — | — | current |
+| 69 | SHTENCO MATH PORTFOLIO V3 BALANCED | SHTENCO-MATH-PORTFOLIO-V3 | 11/11 | 21.96× | 189.4 | 0.3673 | — | — | — | current |
+| 70 | SHTENCO MATH PORTFOLIO V3 MAX | SHTENCO-MATH-PORTFOLIO-V3 | 11/11 | 22.67× | 480.3 | 0.5749 | — | — | — | current |
+| 71 | SHTENCO NEXUS-UMC TIER1 | SHTENCO-TIER1 | 11/11 | 19.67× | 1.461 | 0.08189 | — | — | — | current |
+| 72 | SHTENCO OMNIA TIER1 V2 BALANCED | SHTENCO-OMNIA-TIER1-V2 | 11/11 | 27.24× | 91.94 | 0.2636 | — | — | — | current |
+| 73 | SHTENCO OMNIA TIER1 V2 MAX | SHTENCO-OMNIA-TIER1-V2 | 11/11 | 30.34× | 2518 | 0.2817 | — | — | — | current |
+| 74 | SHTENCO OMNIA TIER1 V2 SPEED | SHTENCO-OMNIA-TIER1-V2 | 11/11 | 19.4× | 4.154 | 0.0581 | — | — | — | current |
+| 75 | SHTENCO OMNIA-MATH V3 BALANCED | SHTENCO-OMNIA-MATH-V3 | 11/11 | 28.06× | 409.4 | 0.3315 | — | — | — | current |
+| 76 | SHTENCO OMNIA-MATH V3 MAX | SHTENCO-OMNIA-MATH-V3 | 11/11 | 29.97× | 3547 | 0.2332 | — | — | — | current |
+| 77 | SHTENCO OMNIA-MATH V3 SPEED | SHTENCO-OMNIA-MATH-V3 | 11/11 | 25.61× | 198.1 | 0.2457 | — | — | — | current |
+| 78 | SHTENCO PBM-39X TIER1 | SHTENCO-TIER1 | 11/11 | 16.5× | 0.1266 | 0.04034 | — | — | — | current |
+| 79 | SHTENCO SABF-X TIER1 BALANCED | SHTENCO-TIER1 | 11/11 | 17.1× | 0.8704 | 0.0416 | — | — | — | current |
+| 80 | SHTENCO SABF-X TIER1 SPEED | SHTENCO-TIER1 | 11/11 | 16.5× | 0.1322 | 0.0415 | — | — | — | current |
+| 81 | SHTENCO TSC-X TIER1 SPATIAL | SHTENCO-TIER1 | 11/11 | 22.11× | 2.674 | 0.0949 | — | — | — | current |
+
+### Ограничения интерпретации
+
+- Это восстановленная сводная таблица, а не единый свежий 81-системный забег на одном timing-протоколе.
+- Frozen-ранги и current-измерения помечены раздельно; времена нельзя напрямую сравнивать без унифицированного повторного теста.
+- Коэффициенты относятся к 11 конкретным наборам по 32 KiB и не доказывают универсального выигрыша на произвольных файлах.
+- Сырые строки текущего прогона: current_systems_rows.csv; полная агрегированная сводка: combined_systems_summary.csv; JSON-отчёт: all_systems_report.json в артефакте запуска.
+
+---
+
 ---
 
 ## Инвестиционный тезис
