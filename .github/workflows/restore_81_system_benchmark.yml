@@ -22,7 +22,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           if [ -f requirements_v4.txt ]; then python -m pip install -r requirements_v4.txt; fi
-          python -m pip install brotli
+          python -m pip install brotli zstandard
       - name: Compile benchmark sources
         run: |
           python -m py_compile compression_lab/benchmark_unified_tier1.py compression_lab/benchmark_unified_tier1_v3.py compression_lab/shtenco_math_portfolio_v3.py
