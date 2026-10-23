@@ -1,0 +1,52 @@
+name: Restore 81-system benchmark table
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/restore_81_system_benchmark.yml'
+      - 'compression_lab/benchmark_unified_tier1_v3.py'
+      - 'compression_lab/shtenco_math_portfolio_v3.py'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  benchmark:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          if [ -f requirements_v4.txt ]; then python -m pip install -r requirements_v4.txt; fi
+          python -m pip install brotli
+      - name: Compile benchmark sources
+        run: |
+          python -m py_compile compression_lab/benchmark_unified_tier1.py compression_lab/benchmark_unified_tier1_v3.py compression_lab/shtenco_math_portfolio_v3.py
+      - name: Run federated 81-system benchmark
+        run: |
+          set -o pipefail
+          python compression_lab/benchmark_unified_tier1_v3.py --size 32768 --repeats 3 --output compression_lab/output_unified_tier1_v3 2>&1 | tee compression_lab/output_unified_tier1_v3_console.log
+      - name: Enforce inventory and exactness
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('compression_lab/output_unified_tier1_v3/all_systems_report.json')
+          if not p.exists(): raise SystemExit('all_systems_report.json missing')
+          d=json.loads(p.read_text())
+          print('systems=',d.get('system_count'),'current rows=',d.get('current_row_count'),'pass=',d.get('current_pass_rows'))
+          if d.get('system_count',0) < 81: raise SystemExit('inventory < 81')
+          if d.get('current_pass_rows') != d.get('current_row_count'): raise SystemExit('exactness failures')
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: SHTENCO_UNIFIED_TIER1_V3_81_SYSTEMS_RECOVERED
+          path: |
+            compression_lab/output_unified_tier1_v3/
+            compression_lab/output_unified_tier1_v3_console.log
+          if-no-files-found: error
+          retention-days: 30
