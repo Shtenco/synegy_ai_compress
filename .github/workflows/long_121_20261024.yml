@@ -1,0 +1,65 @@
+name: Long 81 SYNERGY + WORLD40 full benchmark (30x timeouts)
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'compression_lab/benchmark_long_121_20261024.py'
+      - '.github/workflows/long_121_20261024.yml'
+permissions:
+  contents: read
+jobs:
+  long-benchmark:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 180
+    strategy:
+      fail-fast: false
+      max-parallel: 8
+      matrix:
+        shard: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Checkout original 81-SYNERGY exact implementations
+        uses: actions/checkout@v4
+        with:
+          repository: Shtenco/synergy_agi_olga
+          ref: benchmark/81-unified-timing-v1
+          path: source81
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install benchmark and all original engine dependencies
+        run: |
+          python -m pip install -r source81/compression_lab/requirements_v4.txt
+          python -m pip install brotli zstandard lz4 blosc2 flask mnemonic
+          python source81/compression_lab/materialize_unified81_sources.py
+          python -m py_compile compression_lab/benchmark_long_121_20261024.py
+      - name: Fix source provenance and test 81 registry
+        run: |
+          echo "NATIVE_SOURCE_SHA=$(git -C source81 rev-parse HEAD)" >> "$GITHUB_ENV"
+          python - <<'PY'
+          from pathlib import Path
+          import sys
+          sys.path.insert(0,str(Path('source81/compression_lab').resolve()))
+          from benchmark_all_81_unified_timing import build_systems
+          engines=build_systems()
+          assert len(engines)==81 and len(set(x.name for x in engines))==81
+          print('81 UNIQUE NATIVE ENGINES: OK')
+          PY
+      - name: Run exact 11 x 5MiB long benchmark shard
+        run: |
+          python -u compression_lab/benchmark_long_121_20261024.py \
+            --source source81 --output output_long_121 \
+            --shard ${{ matrix.shard }} --shards 22 \
+            --timeout-synergy 480 --timeout-world 540
+      - name: Upload full raw measurements, including failed and partial cases
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: long121-raw-shard-${{ matrix.shard }}
+          path: |
+            output_long_121/shard_*.csv
+            output_long_121/shard_*_progress.json
+            output_long_121/corpus/manifest.json
+          if-no-files-found: warn
+          retention-days: 30
