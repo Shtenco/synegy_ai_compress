@@ -11,11 +11,11 @@
 
 ## Архивный реестр — три сохранённых рейтинга 81/81
 
-Ниже дословно восстановлены три таблицы предыдущей версии README (коммит [`8dac52c`](https://github.com/Shtenco/synegy_ai_compress/commit/8dac52cc1af8af8b0ccb296e8e3b878052cdaca3)). Это **исторический реестр с собственными методиками**, не объединённый с новым 30× бенчмарком. Числа и строки старых таблиц не пересчитывались.
+Ниже дословно восстановлены три таблицы предыдущей версии README (коммит [`8dac52c`]). Это **исторический реестр с собственными методиками**, не объединённый с новым 30× бенчмарком. Числа и строки старых таблиц не пересчитывались.
 
 ## Полная таблица 81/81 систем — три независимых рейтинга
 
-**Источник:** восстановленный артефакт GitHub Actions, запуск 23.10.2026; frozen baseline commit c681ec94fe5194156b71fc304035f7aaff4d2327; schema shtenco-unified-tier1-v2-federated; SHA-256 исходного frozen artifact: bb769fa6c1b65d697e66d79ac3275b1715ee0c77186669377e783734fcc47296.
+**Источник:** восстановленный исторический артефакт; schema shtenco-unified-tier1-v2-federated.
 
 Вместо одной сводки — три рейтинга одного и того же реестра из 81 системы, от лучшей к худшей по конкретному критерию. Все три таблицы содержат те же 81 системы и исходные значения PASS/total, коэффициента и времени.
 
@@ -293,9 +293,9 @@
 
 ## Текущий полный перечень 121 профиля — GitHub Actions 30×
 
-> GitHub Actions: https://github.com/Shtenco/synegy_ai_compress/actions/runs/40031701130
-> Synthetic dataset (new protocol): 11 × 5 MiB; exact restore + SHA256. Source: https://github.com/Shtenco/synegy_ai_compress/blob/main/compression_lab/benchmark_long_121_20261024.py
-> Native registry commit: `dad4af4cc8def2d99571f7b28282694931c49186`.
+> Измерительный протокол: завершённый 22-заданный GitHub Actions прогон; полные исходники приватны.
+> Synthetic dataset (new protocol): 11 × 5 MiB; exact restore + SHA256. Реализация бенчмарка и кодеков не публикуются.
+> Реестр движков: 81 SYNERGY + 40 WORLD.
 > Coverage: 121/121 configs, complete PASS: 97/121 (57 SYNERGY, 40 WORLD); 1,208/1,331 PASS cases, 118 TIMEOUT and 5 FAIL.
 > This is not the same corpus as the old 2026-10-24 benchmark; do not combine coefficients across them.
 > Profile-level 30× timeout: 480 sec SYNERGY, 540 sec WORLD. A process timeout can leave some dataset cases unmeasured.
@@ -437,9 +437,9 @@
 
 ## Источник и повторяемость
 
-- 22 GitHub Actions shards, all concluded successfully. Artifacts with raw rows: https://github.com/Shtenco/synegy_ai_compress/actions/runs/40031701130
+- 22 GitHub Actions shards завершились успешно. Исходные файлы и журналы хранятся вне публичной ветки.
 - Deterministic manifest SHA-256: `80a8c12a0e0312b4b2538e6ab6d39f5863c30efd4b7b9db920be77c163fc3dd6`.
-- See `RAW_ALL_121_GITHUB_30X.csv` and `SUMMARY_30X.json` alongside this report.
+- Сырые файлы находятся в закрытом техническом архиве правообладателя.
 
 ---
 
@@ -528,7 +528,7 @@ SHTENCO ориентирован на проверяемую lossless-компр
 
 **Зафиксированный результат 30-кратного увеличения лимитов:** все 81 SYNERGY и 40 WORLD включены в тест; **57/81 SYNERGY** и **40/40 WORLD** завершили полные 11/11 на новом едином корпусе. **1 208/1 331** испытаний завершились `PASS`, **118** — `TIMEOUT`, **5** — `FAIL` (переполнение 16-битного поля на BIP39 у SABF-X и каскадов). Пропущенные измерения не заменяются историческими значениями и не участвуют в полном рейтинге.
 
-Одна общая таблица и формулы для SAEI / K ЦОД приведены **в начале README**. Замеры доступны в [GitHub Actions run #40031701130](https://github.com/Shtenco/synegy_ai_compress/actions/runs/40031701130). Сравнивать коэффициенты нового и старого разных синтетических корпусов напрямую нельзя.
+Одна общая таблица и формулы для SAEI / K ЦОД приведены **в начале README**. Сравнивать коэффициенты нового и старого разных синтетических корпусов напрямую нельзя.
 
 ## Применимость в ЕАЭС и мире
 
@@ -658,16 +658,9 @@ Net benefit =
 
 Синтетические коэффициенты не следует напрямую превращать в прогноз выручки или обещание экономии. Экономический результат определяется на данных и инфраструктуре конкретного клиента.
 
-## Техническая структура репозитория
+## Доступ к исходным кодам
 
-Ключевые исходные материалы расположены в `compression_lab/`. В зависимости от доступности в текущей ветке, изучение следует начинать с:
-
-- [Tier-1 compression engines](compression_lab/shtenco_tier1_engines.py)
-- [Tier-1 V2](compression_lab/shtenco_tier1_v2.py)
-- [Gabriel Horn engine](compression_lab/gabriel_horn_engine.py)
-- [Unified Tier-1 benchmark runner](compression_lab/benchmark_unified_tier1.py)
-
-Реализации, интерфейсы и возможности следует проверять по исходному коду конкретного файла. Наличие имени алгоритма в реестре не означает, что каждый профиль использует один и тот же entropy backend или реализует одинаковый набор возможностей.
+**Реализации архиваторов, тестовые стенды, внутренние зависимости и технические материалы не распространяются через публичную ветку.** Публичные таблицы предназначены для ознакомления с измеренными характеристиками. Запросы о лицензировании, закрытой технической проверке и пилотировании рассматриваются непосредственно правообладателем.
 
 ## План технологической валидации
 
